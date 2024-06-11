@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 
 class SignUpScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+
   Future<void> signUp(BuildContext context) async {
     try {
-      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserCredential userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
@@ -16,7 +20,6 @@ class SignUpScreen extends StatelessWidget {
       // Optionally, add user info to Firestore
       await FirebaseFirestore.instance.collection('users').doc(userCredential.user?.uid).set({
         'email': emailController.text.trim(),
-        // Add other user details if needed
       });
 
       Navigator.of(context).pushNamed('/mapscreen');
@@ -33,6 +36,47 @@ class SignUpScreen extends StatelessWidget {
           message = '$e';
       }
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
+  Future<void> signUpWithGoogle(BuildContext context) async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      final GoogleSignInAuthentication googleAuth = await googleUser!.authentication;
+
+      final OAuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
+
+      // Optionally, add user info to Firestore
+      await FirebaseFirestore.instance.collection('users').doc(userCredential.user?.uid).set({
+        'email': userCredential.user?.email,
+      });
+
+      Navigator.of(context).pushNamed('/mapscreen');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to sign up with Google: $e')));
+    }
+  }
+
+  Future<void> signUpWithFacebook(BuildContext context) async {
+    try {
+      final LoginResult result = await FacebookAuth.instance.login();
+      final OAuthCredential credential = FacebookAuthProvider.credential(result.accessToken!.token);
+
+      UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
+
+      // Optionally, add user info to Firestore
+      await FirebaseFirestore.instance.collection('users').doc(userCredential.user?.uid).set({
+        'email': userCredential.user?.email,
+      });
+
+      Navigator.of(context).pushNamed('/mapscreen');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to sign up with Facebook: $e')));
     }
   }
 
@@ -92,7 +136,7 @@ class SignUpScreen extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 minimumSize: Size(double.infinity, 50),
                 foregroundColor: Colors.white,
-                backgroundColor: Colors.blue
+                backgroundColor: Colors.blue,
               ),
             ),
             SizedBox(height: 16),
@@ -110,14 +154,14 @@ class SignUpScreen extends StatelessWidget {
                 IconButton(
                   icon: Image.asset('assets/images/google.png'),
                   onPressed: () {
-                    // Handle Google sign up
+                    signUpWithGoogle(context);
                   },
                 ),
                 SizedBox(width: 16),
                 IconButton(
                   icon: Image.asset('assets/images/facebook.png'),
                   onPressed: () {
-                    // Handle Facebook sign up
+                    signUpWithFacebook(context);
                   },
                 ),
               ],
@@ -125,7 +169,7 @@ class SignUpScreen extends StatelessWidget {
             SizedBox(height: 16),
             TextButton(
               onPressed: () {
-                // Handle sign in
+                Navigator.of(context).pushNamed('/signin');
               },
               child: Text('Already have an account? Sign in'),
             ),

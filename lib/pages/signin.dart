@@ -1,6 +1,95 @@
-import "package:flutter/material.dart";
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 
 class SignIn extends StatelessWidget {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  Future<void> _signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      final GoogleSignInAuthentication googleAuth = await googleUser!.authentication;
+
+      final OAuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      await _auth.signInWithCredential(credential);
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> _signInWithFacebook() async {
+    try {
+      final LoginResult result = await FacebookAuth.instance.login();
+      final OAuthCredential credential = FacebookAuthProvider.credential(result.accessToken!.token);
+      await _auth.signInWithCredential(credential);
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> _signInWithEmailAndPassword(BuildContext context) async {
+    final TextEditingController emailController = TextEditingController();
+    final TextEditingController passwordController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Sign in with Email and Password'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            TextField(
+              controller: emailController,
+              decoration: InputDecoration(labelText: 'Email'),
+            ),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              decoration: InputDecoration(labelText: 'Password'),
+            ),
+          ],
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                await _auth.signInWithEmailAndPassword(
+                  email: emailController.text.trim(),
+                  password: passwordController.text.trim(),
+                );
+                Navigator.of(context).pop();
+                Navigator.of(context).pushNamed('/mapscreen');
+              } on FirebaseAuthException catch (e) {
+                String message;
+                switch (e.code) {
+                  case 'user-not-found':
+                    message = 'No user found for that email.';
+                    break;
+                  case 'wrong-password':
+                    message = 'Wrong password provided.';
+                    break;
+                  default:
+                    message = 'An error occurred. Please try again.';
+                }
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+              }
+            },
+            child: Text('Sign In'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,9 +108,7 @@ class SignIn extends StatelessWidget {
               ),
               SizedBox(height: 40),
               ElevatedButton.icon(
-                onPressed: () {
-                  // Add your Google sign-in logic here
-                },
+                onPressed: _signInWithGoogle,
                 icon: Image.asset("assets/images/google.png"), // Placeholder for Google icon
                 label: Text('Continue with Google'),
                 style: ElevatedButton.styleFrom(
@@ -35,10 +122,8 @@ class SignIn extends StatelessWidget {
               ),
               SizedBox(height: 16),
               ElevatedButton.icon(
-                onPressed: () {
-                  // Add your Facebook sign-in logic here
-                },
-                icon:  Image.asset("assets/images/facebook.png"), // Placeholder for Facebook icon
+                onPressed: _signInWithFacebook,
+                icon: Image.asset("assets/images/facebook.png"), // Placeholder for Facebook icon
                 label: Text('Continue with Facebook'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
@@ -62,9 +147,7 @@ class SignIn extends StatelessWidget {
               ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
-                  // Add your email/password sign-in logic here
-                },
+                onPressed: () => _signInWithEmailAndPassword(context),
                 child: Text('Sign in with password'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,

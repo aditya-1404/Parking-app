@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import "package:google_fonts/google_fonts.dart";
 import "package:parking_app/pages/mappage.dart";
+import "package:parking_app/pages/signin.dart";
 import "package:parking_app/pages/signup.dart";
 import "package:parking_app/pages/welcomepage.dart";
 import 'package:firebase_core/firebase_core.dart';
@@ -23,6 +24,7 @@ class MyApp extends StatelessWidget {
       initialRoute: "/",
       routes:{
         "/":(context)=>WelcomePage(),
+        "/signin":(context)=>SignIn(),
         "/signup":(context)=>SignUpScreen(),
         "/mapscreen":(context)=>MapScreen()
       }
