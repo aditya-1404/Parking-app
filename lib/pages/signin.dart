@@ -17,6 +17,8 @@ class SignIn extends StatelessWidget {
       );
 
       await _auth.signInWithCredential(credential);
+      // Navigate to the map screen after successful sign-in
+      // Navigator.of(context).pushNamed('/mapscreen');
     } catch (e) {
       print(e);
     }
@@ -27,6 +29,8 @@ class SignIn extends StatelessWidget {
       final LoginResult result = await FacebookAuth.instance.login();
       final OAuthCredential credential = FacebookAuthProvider.credential(result.accessToken!.token);
       await _auth.signInWithCredential(credential);
+      // Navigate to the map screen after successful sign-in
+      // Navigator.of(context).pushNamed('/mapscreen');
     } catch (e) {
       print(e);
     }
@@ -39,20 +43,38 @@ class SignIn extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Sign in with Email and Password'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            TextField(
-              controller: emailController,
-              decoration: InputDecoration(labelText: 'Email'),
-            ),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: InputDecoration(labelText: 'Password'),
-            ),
-          ],
+        title: Text(
+          'Sign in with Email and Password',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              TextField(
+                controller: emailController,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: Icon(Icons.email),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              TextField(
+                controller: passwordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: Icon(Icons.lock),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
         actions: <Widget>[
           TextButton(
@@ -84,6 +106,10 @@ class SignIn extends StatelessWidget {
               }
             },
             child: Text('Sign In'),
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: Colors.blue
+            ),
           ),
         ],
       ),
@@ -109,7 +135,10 @@ class SignIn extends StatelessWidget {
               SizedBox(height: 40),
               ElevatedButton.icon(
                 onPressed: _signInWithGoogle,
-                icon: Image.asset("assets/images/google.png"), // Placeholder for Google icon
+                icon: Image.asset(
+                  "assets/images/google.png",
+                  height: 24, // Adjust the size of the icon
+                ),
                 label: Text('Continue with Google'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
@@ -117,13 +146,17 @@ class SignIn extends StatelessWidget {
                   minimumSize: Size(double.infinity, 50),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(25),
+                    side: BorderSide(color: Colors.grey.shade300),
                   ),
                 ),
               ),
               SizedBox(height: 16),
               ElevatedButton.icon(
                 onPressed: _signInWithFacebook,
-                icon: Image.asset("assets/images/facebook.png"), // Placeholder for Facebook icon
+                icon: Image.asset(
+                  "assets/images/facebook.png",
+                  height: 24, // Adjust the size of the icon
+                ),
                 label: Text('Continue with Facebook'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
@@ -131,6 +164,7 @@ class SignIn extends StatelessWidget {
                   minimumSize: Size(double.infinity, 50),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(25),
+                    side: BorderSide(color: Colors.grey.shade300),
                   ),
                 ),
               ),
@@ -148,7 +182,14 @@ class SignIn extends StatelessWidget {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => _signInWithEmailAndPassword(context),
-                child: Text('Sign in with password'),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Icon(Icons.email, color: Colors.white),
+                    SizedBox(width: 10),
+                    Text('Sign in with password'),
+                  ],
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
