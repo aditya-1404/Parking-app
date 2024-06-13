@@ -6,7 +6,7 @@ import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 class SignIn extends StatelessWidget {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  Future<void> _signInWithGoogle() async {
+  Future<void> _signInWithGoogle(BuildContext context) async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       final GoogleSignInAuthentication googleAuth = await googleUser!.authentication;
@@ -17,8 +17,8 @@ class SignIn extends StatelessWidget {
       );
 
       await _auth.signInWithCredential(credential);
-      // Navigate to the map screen after successful sign-in
-      // Navigator.of(context).pushNamed('/mapscreen');
+      //Navigate to the map screen after successful sign-in
+      Navigator.of(context).pushNamed('/mapscreen');
     } catch (e) {
       print(e);
     }
@@ -134,7 +134,7 @@ class SignIn extends StatelessWidget {
               ),
               SizedBox(height: 40),
               ElevatedButton.icon(
-                onPressed: _signInWithGoogle,
+                onPressed:()=> _signInWithGoogle(context),
                 icon: Image.asset(
                   "assets/images/google.png",
                   height: 24, // Adjust the size of the icon
