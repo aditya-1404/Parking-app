@@ -22,7 +22,7 @@ class SignUpScreen extends StatelessWidget {
         'email': emailController.text.trim(),
       });
 
-      Navigator.of(context).pushNamed('/mapscreen');
+      Navigator.of(context).pushNamed('/signin');
     } on FirebaseAuthException catch (e) {
       String message;
       switch (e.code) {
