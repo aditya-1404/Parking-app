@@ -65,5 +65,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'parking-app-34cea.appspot.com',
     iosBundleId: 'com.example.parkingApp',
   );
-
 }

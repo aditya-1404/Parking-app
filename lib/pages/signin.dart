@@ -9,7 +9,8 @@ class SignIn extends StatelessWidget {
   Future<void> _signInWithGoogle(BuildContext context) async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      final GoogleSignInAuthentication googleAuth = await googleUser!.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser!.authentication;
 
       final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
@@ -18,7 +19,7 @@ class SignIn extends StatelessWidget {
 
       await _auth.signInWithCredential(credential);
       //Navigate to the map screen after successful sign-in
-      Navigator.of(context).pushNamed('/mapscreen');
+      Navigator.of(context).pushNamed('/homepage');
     } catch (e) {
       print(e);
     }
@@ -27,7 +28,8 @@ class SignIn extends StatelessWidget {
   Future<void> _signInWithFacebook() async {
     try {
       final LoginResult result = await FacebookAuth.instance.login();
-      final OAuthCredential credential = FacebookAuthProvider.credential(result.accessToken!.token);
+      final OAuthCredential credential =
+          FacebookAuthProvider.credential(result.accessToken!.token);
       await _auth.signInWithCredential(credential);
       // Navigate to the map screen after successful sign-in
       // Navigator.of(context).pushNamed('/mapscreen');
@@ -89,7 +91,7 @@ class SignIn extends StatelessWidget {
                   password: passwordController.text.trim(),
                 );
                 Navigator.of(context).pop();
-                Navigator.of(context).pushNamed('/mapscreen');
+                Navigator.of(context).pushNamed('/homepage');
               } on FirebaseAuthException catch (e) {
                 String message;
                 switch (e.code) {
@@ -102,14 +104,13 @@ class SignIn extends StatelessWidget {
                   default:
                     message = 'An error occurred. Please try again.';
                 }
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: Text(message)));
               }
             },
             child: Text('Sign In'),
             style: ElevatedButton.styleFrom(
-              foregroundColor: Colors.white,
-              backgroundColor: Colors.blue
-            ),
+                foregroundColor: Colors.white, backgroundColor: Colors.blue),
           ),
         ],
       ),
@@ -119,9 +120,10 @@ class SignIn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(45.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
@@ -134,7 +136,7 @@ class SignIn extends StatelessWidget {
               ),
               SizedBox(height: 40),
               ElevatedButton.icon(
-                onPressed:()=> _signInWithGoogle(context),
+                onPressed: () => _signInWithGoogle(context),
                 icon: Image.asset(
                   "assets/images/google.png",
                   height: 24, // Adjust the size of the icon

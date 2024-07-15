@@ -12,13 +12,17 @@ class SignUpScreen extends StatelessWidget {
 
   Future<void> signUp(BuildContext context) async {
     try {
-      UserCredential userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await _firebaseAuth.createUserWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
 
       // Optionally, add user info to Firestore
-      await FirebaseFirestore.instance.collection('users').doc(userCredential.user?.uid).set({
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user?.uid)
+          .set({
         'email': emailController.text.trim(),
       });
 
@@ -35,56 +39,70 @@ class SignUpScreen extends StatelessWidget {
         default:
           message = '$e';
       }
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
   Future<void> signUpWithGoogle(BuildContext context) async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      final GoogleSignInAuthentication googleAuth = await googleUser!.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser!.authentication;
 
       final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
+      UserCredential userCredential =
+          await _firebaseAuth.signInWithCredential(credential);
 
       // Optionally, add user info to Firestore
-      await FirebaseFirestore.instance.collection('users').doc(userCredential.user?.uid).set({
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user?.uid)
+          .set({
         'email': userCredential.user?.email,
       });
 
       Navigator.of(context).pushNamed('/mapscreen');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to sign up with Google: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to sign up with Google: $e')));
     }
   }
 
   Future<void> signUpWithFacebook(BuildContext context) async {
     try {
       final LoginResult result = await FacebookAuth.instance.login();
-      final OAuthCredential credential = FacebookAuthProvider.credential(result.accessToken!.token);
+      final OAuthCredential credential =
+          FacebookAuthProvider.credential(result.accessToken!.token);
 
-      UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
+      UserCredential userCredential =
+          await _firebaseAuth.signInWithCredential(credential);
 
       // Optionally, add user info to Firestore
-      await FirebaseFirestore.instance.collection('users').doc(userCredential.user?.uid).set({
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user?.uid)
+          .set({
         'email': userCredential.user?.email,
       });
 
       Navigator.of(context).pushNamed('/mapscreen');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to sign up with Facebook: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to sign up with Facebook: $e')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Padding(
-        padding: const EdgeInsets.all(55.0),
+        padding: const EdgeInsets.all(45.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
@@ -92,7 +110,7 @@ class SignUpScreen extends StatelessWidget {
               'Create your account',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 40),
             TextField(
               controller: emailController,
               decoration: InputDecoration(
@@ -117,6 +135,7 @@ class SignUpScreen extends StatelessWidget {
             ),
             SizedBox(height: 16),
             Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Checkbox(
                   value: false,
