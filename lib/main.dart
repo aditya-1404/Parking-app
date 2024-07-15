@@ -1,12 +1,14 @@
 import "package:flutter/material.dart";
 import "package:google_fonts/google_fonts.dart";
 import "package:parking_app/pages/mappage.dart";
+import "package:parking_app/pages/menu.dart";
 import "package:parking_app/pages/signin.dart";
 import "package:parking_app/pages/signup.dart";
 import "package:parking_app/pages/welcomepage.dart";
 import 'package:firebase_core/firebase_core.dart';
+import 'package:parking_app/pages/homepage.dart';
 
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(MyApp());
@@ -14,20 +16,23 @@ void main() async{
 
 class MyApp extends StatelessWidget {
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return MaterialApp(
-      themeMode: ThemeMode.light,
-      theme:ThemeData(
-        primarySwatch: Colors.blue,
-        fontFamily: GoogleFonts.itim().fontFamily,
-      ),
-      initialRoute: "/",
-      routes:{
-        "/":(context)=>WelcomePage(),
-        "/signin":(context)=>SignIn(),
-        "/signup":(context)=>SignUpScreen(),
-        "/mapscreen":(context)=>MapScreen()
-      }
-    );
+        themeMode: ThemeMode.light,
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          fontFamily: GoogleFonts.itim().fontFamily,
+        ),
+        initialRoute: "/",
+        routes: {
+          "/": (context) => WelcomePage(),
+          "/signin": (context) => SignIn(),
+          "/signup": (context) => SignUpScreen(),
+          "/mapscreen": (context) => MapScreen(),
+          "/homepage": (context) => HomePage(
+                userName: "String",
+              ),
+          "/menu": (context) => MenuPage()
+        });
   }
 }
