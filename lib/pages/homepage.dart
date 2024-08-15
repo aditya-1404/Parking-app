@@ -1,135 +1,182 @@
 import 'package:flutter/material.dart';
-import 'package:parking_app/pages/menu.dart';
+import 'package:parking_app/pages/registervehicle.dart';
+import 'package:parking_app/pages/parkingspace.dart';
 
 class HomePage extends StatefulWidget {
-  final String userName;
+  final List<Map<String, String>> vehicles;
 
-  HomePage({required this.userName});
+  HomePage({required this.vehicles});
 
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  int vehicleCount = 0;
-  int bookingCount = 0;
-  String vehicleStatus = "Nothing to show..";
-  String bookingStatus = "Nothing to show..";
-
-  void registerVehicle() {
-    setState(() {
-      vehicleCount++;
-      vehicleStatus = "Vehicle $vehicleCount registered";
-    });
-  }
-
-  void bookParking() {
-    setState(() {
-      bookingCount++;
-      bookingStatus = "Booking $bookingCount active";
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    int vehicleCount = widget.vehicles.length;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         leading: Builder(
           builder: (context) => IconButton(
-            icon: Icon(Icons.menu),
+            icon: const Icon(Icons.menu),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
       ),
       drawer: Drawer(
-        child: MenuPage(), // Use your MenuPage widget here
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: const [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Color(0xff422669),
+              ),
+              child: Text(
+                'Menu',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.home),
+              title: Text('Home'),
+            ),
+            ListTile(
+              leading: Icon(Icons.directions_car),
+              title: Text('My Vehicles'),
+            ),
+            ListTile(
+              leading: Icon(Icons.settings),
+              title: Text('Settings'),
+            ),
+          ],
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(40.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
+            const Center(
               child: Text(
-                'Hi, ${widget.userName}!',
+                'Hello!',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Your vehicles',
+                const Text(
+                  'Your saved vehicles',
                   style: TextStyle(
                     fontSize: 18,
                   ),
                 ),
                 Text(
                   '$vehicleCount',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 8),
-            Text(
-              vehicleStatus,
+            const SizedBox(height: 8),
+            Expanded(
+              child: vehicleCount == 0
+                  ? Center(
+                      child: Text(
+                        'Nothing to show',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 16,
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: vehicleCount,
+                      itemBuilder: (context, index) {
+                        var vehicle = widget.vehicles[index];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: ListTile(
+                            title: Text(
+                              'Vehicle number : ${vehicle['number']}',
+                              style: const TextStyle(),
+                            ),
+                            subtitle: Text(
+                              'Model type: ${vehicle['model']}\nColor: ${vehicle['color']}',
+                            ),
+                            trailing: const Icon(Icons.edit),
+                            onTap: () {
+                              // Navigate to the vehicle edit page
+                            },
+                          ),
+                        );
+                      },
+                    ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Your active bookings',
               style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
+                fontSize: 18,
               ),
             ),
-            SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Your Active bookings',
-                  style: TextStyle(
-                    fontSize: 18,
-                  ),
+            const SizedBox(height: 8),
+            const Center(
+              child: Text(
+                'Nothing to show..',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 16,
                 ),
-                Text(
-                  '$bookingCount',
-                  style: TextStyle(
-                    fontSize: 18,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 8),
-            Text(
-              bookingStatus,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
               ),
             ),
-            Spacer(),
+            const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: registerVehicle,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => RegisterVehiclePage(
+                      vehicles: widget.vehicles,
+                    ),
+                  ),
+                );
+              },
               style: ElevatedButton.styleFrom(
                 minimumSize: Size(double.infinity, 50),
+                foregroundColor: Colors.white,
                 backgroundColor: Color(0xff422669),
               ),
-              child: Text('Register your vehicle',
-                  style: TextStyle(color: Colors.white)),
+              child: Text('Register your vehicle'),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: bookParking,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ParkingSpacePage(),
+                  ),
+                );
+              },
               style: ElevatedButton.styleFrom(
                 minimumSize: Size(double.infinity, 50),
+                foregroundColor: Colors.white,
                 backgroundColor: Color(0xff422669),
               ),
-              child: Text('Search parking space',
-                  style: TextStyle(color: Colors.white)),
+              child: Text('Search parking space'),
             ),
           ],
         ),

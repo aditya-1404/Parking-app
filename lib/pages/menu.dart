@@ -44,37 +44,37 @@ class MenuPage extends StatelessWidget {
               ),
             ),
             ListTile(
+              leading: Icon(Icons.book), // Icon for My Bookings
               title: Text('My Bookings'),
               onTap: () {
-                // Navigate to bookings page or perform action
                 Navigator.pop(context); // Close the drawer
               },
             ),
             ListTile(
+              leading: Icon(Icons.directions_car), // Icon for My Cars
               title: Text('My Cars'),
               onTap: () {
-                // Navigate to cars page or perform action
                 Navigator.pop(context); // Close the drawer
               },
             ),
             ListTile(
+              leading: Icon(Icons.location_on), // Icon for Find My Parking
               title: Text('Find My Parking'),
               onTap: () {
-                // Navigate to parking page or perform action
                 Navigator.pop(context); // Close the drawer
               },
             ),
             ListTile(
+              leading: Icon(Icons.payment), // Icon for My Payment History
               title: Text('My Payment History'),
               onTap: () {
-                // Navigate to payment history page or perform action
                 Navigator.pop(context); // Close the drawer
               },
             ),
             ListTile(
+              leading: Icon(Icons.logout), // Icon for Log Out
               title: Text('Log Out'),
               onTap: () {
-                // Perform log out action
                 Navigator.pop(context); // Close the drawer
               },
             ),

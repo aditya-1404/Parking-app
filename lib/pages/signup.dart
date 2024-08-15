@@ -106,11 +106,11 @@ class SignUpScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
+            const Text(
               'Create your account',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 40),
+           const SizedBox(height: 40),
             TextField(
               controller: emailController,
               decoration: InputDecoration(
