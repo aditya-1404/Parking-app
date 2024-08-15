@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
           "/": (context) => WelcomePage(),
           "/signin": (context) => SignIn(),
           "/signup": (context) => SignUpScreen(),
-          "/mapscreen": (context) => MapScreen(),
+          // "/mapscreen": (context) => MapScreen(),
           "/homepage": (context) => HomePage(
                 vehicles: [],
               ),
