@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:geocoding/geocoding.dart';
 import 'slotbookingpage.dart';
 import 'package:parking_app/models/parking_spot.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 
 class ParkingSpacePage extends StatefulWidget {
   @override
@@ -16,50 +17,68 @@ class _ParkingSpacePageState extends State<ParkingSpacePage> {
   String _selectedRadius = '1 km';
   GoogleMapController? _mapController;
   List<ParkingSpot> _parkingSpots = [];
+  String _slotData = '';
 
   Future<void> _findParkingSpots() async {
     try {
       final locationName = _locationController.text;
 
+      // Get locations from the entered address
       final locations = await locationFromAddress(locationName);
 
       if (locations.isNotEmpty) {
         final location = locations.first;
-        final latLng = '${location.latitude},${location.longitude}';
-        final radius = int.parse(_selectedRadius.split(' ')[0]) * 1000;
 
+        // Extract the pincode using the postal code field from geocoding
+        final placemarks = await placemarkFromCoordinates(location.latitude, location.longitude);
+        final pincode = placemarks.first.postalCode;
+
+        // Make the request to your API with the pincode
         final url = Uri.parse(
-            'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=$latLng&radius=$radius&type=parking&key=AIzaSyAMtI0X-3jyLGu0qO3UOb4UmymnZ50yJ68');
-
-        final response = await http.get(url);
+          'https://spmps.onrender.com/get_slot_by_location?pincode=${pincode}&radius=10000&latitude=${location.latitude}&longitude=${location.longitude}',
+        );
+        final response = await http.get(
+          url,
+          headers: {'Content-Type': 'application/json'},
+        );
+        print(response.body);
 
         if (response.statusCode == 200) {
-          final data = json.decode(response.body);
+          // Parse the response body
+          final data = json.decode(response.body)['data'] as List;
 
+          // Convert the response data into ParkingSpot objects
+          List<ParkingSpot> spots = data.map((json) {
+            return ParkingSpot(
+              locationId: json['location_id'],
+              locationName: json['location_name'],
+              pincode: json['pincode'],
+              address: json['address'],
+              city: json['city'],
+              totalParkingLots: int.parse(json['total_parking_lots']),
+              totalRevenue: json['total_revenue'],
+              isOpen: json['isopen'],
+              availableSlots: int.parse(json['available_slots']),
+              latitude: json['latitude'],
+              longitude: json['longitude'],
+              distanceKm: json['distance_km'],
+            );
+          }).toList();
+
+          // Sort spots by distance
+          spots.sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
+
+          // Update state with sorted parking spots
           setState(() {
-            _parkingSpots.clear();
-            if (data['results'].isNotEmpty) {
-              for (var result in data['results']) {
-                final parkingSpot = ParkingSpot(
-                  placeId: result['place_id'],
-                  name: result['name'],
-                  vicinity: result['vicinity'],
-                  location: LatLng(
-                    result['geometry']['location']['lat'],
-                    result['geometry']['location']['lng'],
-                  ),
-                );
-                _parkingSpots.add(parkingSpot);
-              }
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('No parking spots found in this area.')),
-              );
-            }
+            _parkingSpots = spots;
           });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Parking slots found for pincode: $pincode')),
+          );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to load parking spots. Please try again later.')),
+            SnackBar(content: Text('Failed to fetch slots for pincode $pincode')),
           );
         }
       } else {
@@ -71,6 +90,23 @@ class _ParkingSpacePageState extends State<ParkingSpacePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}')),
       );
+    }
+  }
+
+  Future<List<String>> _getLocationSuggestions(String query) async {
+    final url = Uri.parse(
+      'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query&key=AIzaSyAMtI0X-3jyLGu0qO3UOb4UmymnZ50yJ68',
+    );
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final suggestions = (data['predictions'] as List)
+          .map((prediction) => prediction['description'] as String)
+          .toList();
+      return suggestions;
+    } else {
+      throw Exception('Failed to load suggestions');
     }
   }
 
@@ -92,13 +128,24 @@ class _ParkingSpacePageState extends State<ParkingSpacePage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextField(
-              controller: _locationController,
-              decoration: InputDecoration(
-                labelText: 'Location',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.location_on),
+            TypeAheadFormField(
+              textFieldConfiguration: TextFieldConfiguration(
+                controller: _locationController,
+                decoration: InputDecoration(
+                  labelText: 'Location',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.location_on),
+                ),
               ),
+              suggestionsCallback: _getLocationSuggestions,
+              itemBuilder: (context, suggestion) {
+                return ListTile(
+                  title: Text(suggestion),
+                );
+              },
+              onSuggestionSelected: (suggestion) {
+                _locationController.text = suggestion;
+              },
             ),
             SizedBox(height: 16),
             DropdownButtonFormField(
@@ -136,14 +183,14 @@ class _ParkingSpacePageState extends State<ParkingSpacePage> {
                     child: Column(
                       children: [
                         Image.network(
-                          'https://maps.googleapis.com/maps/api/staticmap?center=${spot.location.latitude},${spot.location.longitude}&zoom=15&size=600x300&maptype=roadmap&markers=color:red%7C${spot.location.latitude},${spot.location.longitude}&key=AIzaSyAMtI0X-3jyLGu0qO3UOb4UmymnZ50yJ68',
+                          'https://maps.googleapis.com/maps/api/staticmap?center=${spot.latitude},${spot.longitude}&zoom=18&size=600x300&maptype=roadmap&markers=color:red%7C${spot.latitude},${spot.longitude}&key=AIzaSyAMtI0X-3jyLGu0qO3UOb4UmymnZ50yJ68',
                           fit: BoxFit.cover,
                           height: 150.0,
                           width: double.infinity,
                         ),
                         ListTile(
                           title: Text(
-                            spot.name,
+                            spot.locationName,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
@@ -153,28 +200,31 @@ class _ParkingSpacePageState extends State<ParkingSpacePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               SizedBox(height: 4),
-                              Text(spot.vicinity),
+                              Text(spot.address),
                               SizedBox(height: 4),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('1.2km', style: TextStyle(color: Colors.grey[700])),
+                                  Text('${spot.distanceKm.toStringAsFixed(2)} km',
+                                      style: TextStyle(color: Colors.grey[700])),
                                   Text('Rs. 20/hour', style: TextStyle(color: Colors.blue)),
                                 ],
                               ),
                             ],
                           ),
                           trailing: Text(
-                            'Available',
-                            style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                            spot.isOpen ? 'Available Slots:${spot.availableSlots}' : 'Full',
+                            style: TextStyle(
+                                color: spot.isOpen ? Colors.green : Colors.red,
+                                fontWeight: FontWeight.bold),
                           ),
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => SlotBookingPage(spot: spot),
-                              ),
-                            );
+                            // Navigator.push(
+                            //   context,
+                            //   MaterialPageRoute(
+                            //     builder: (context) => SlotBookingPage(spot: spot),
+                            //   ),
+                            // );
                           },
                         ),
                       ],
@@ -195,3 +245,5 @@ class _ParkingSpacePageState extends State<ParkingSpacePage> {
     );
   }
 }
+
+

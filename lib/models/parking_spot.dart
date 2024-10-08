@@ -1,14 +1,30 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 class ParkingSpot {
-  final String placeId;
-  final String name;
-  final String vicinity;
-  final LatLng location;
+  final String locationId;
+  final String locationName;
+  final String pincode;
+  final String address;
+  final int city;
+  final int totalParkingLots;
+  final String totalRevenue;
+  final bool isOpen;
+  final int availableSlots;
+  final double latitude;
+  final double longitude;
+  final double distanceKm;
 
   ParkingSpot({
-    required this.placeId,
-    required this.name,
-    required this.vicinity,
-    required this.location,
+    required this.locationId,
+    required this.locationName,
+    required this.pincode,
+    required this.address,
+    required this.city,
+    required this.totalParkingLots,
+    required this.totalRevenue,
+    required this.isOpen,
+    required this.availableSlots,
+    required this.latitude,
+    required this.longitude,
+    required this.distanceKm,
   });
 }

@@ -8,6 +8,7 @@ class BookingReviewPage extends StatelessWidget {
   final DateTime endTime;
   final double spotPrice;
   final double serviceCharge;
+  final String locationAddress;
 
   BookingReviewPage({
     required this.carInfo,
@@ -15,6 +16,7 @@ class BookingReviewPage extends StatelessWidget {
     required this.endTime,
     this.spotPrice = 20.0,
     this.serviceCharge = 0.0,
+    required this.locationAddress,
   });
 
   @override
@@ -85,23 +87,26 @@ class BookingReviewPage extends StatelessWidget {
             SizedBox(height: 16),
             Center(
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => SlotBookedPage(
-            bookingId: '#7644425480', // Pass actual data here
-            carInfo: 'Maruti Suzuki PB 11 AG 7080', // Use actual car info
-            address: 'Neque porro quisquam est qui dolorem', // Use actual address
-            slotCode: 'B102', // Use actual slot code
-          ),
-        ),
-      );
-                },
-                child: Text('BOOK',style: TextStyle(color: Colors.white),),
-                style: ElevatedButton.styleFrom(
+                onPressed: () async {
+                  final bookingDetails = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SlotBookedPage(
+                        bookingId: '#7644425480',
+                        carInfo: carInfo,
+                        address: locationAddress,
+                        slotCode: 'B102',
+                      ),
+                    ),
+                  );
                   
-                  backgroundColor: Color(0xff422669), // Button color
+                  if (bookingDetails != null) {
+                    Navigator.pop(context, bookingDetails);
+                  }
+                },
+                child: Text('BOOK', style: TextStyle(color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xff422669),
                   padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 ),
               ),

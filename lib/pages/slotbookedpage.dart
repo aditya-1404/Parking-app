@@ -50,9 +50,9 @@ class SlotBookedPage extends StatelessWidget {
             ),
             SizedBox(height: 24),
             _buildInfoRow('Booking Id', bookingId),
-            _buildInfoRow('Car info', carInfo),
-            _buildInfoRow('Address', address),
-            _buildInfoRow('Slot code', slotCode),
+            _buildInfoRow('Car Info', carInfo),
+            _buildInfoRow('Address', trimAddress(address, 35)),
+            _buildInfoRow('Slot Code', slotCode),
             SizedBox(height: 24),
             Center(
               child: Text(
@@ -67,7 +67,7 @@ class SlotBookedPage extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                       Navigator.of(context).pushNamed('/homepage');
+                      Navigator.of(context).pushNamed('/homepage');
                     },
                     child: Text('Go to Home page'),
                     style: ElevatedButton.styleFrom(
@@ -82,6 +82,7 @@ class SlotBookedPage extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: () {
                       // Handle slot cancellation
+                      _cancelSlot(context);
                     },
                     child: Text('Cancel Slot'),
                     style: ElevatedButton.styleFrom(
@@ -116,5 +117,22 @@ class SlotBookedPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String trimAddress(String address, int charLimit) {
+    if (address.length <= charLimit) {
+      return address;
+    }
+    return address.substring(0, charLimit) + '...';
+  }
+
+  void _cancelSlot(BuildContext context) {
+    // Implement your slot cancellation logic here
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Slot booking cancelled')),
+    );
+
+    Navigator.of(context).pushNamed('/homepage');
   }
 }

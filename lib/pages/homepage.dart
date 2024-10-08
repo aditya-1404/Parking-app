@@ -4,8 +4,9 @@ import 'package:parking_app/pages/parkingspace.dart';
 
 class HomePage extends StatefulWidget {
   final List<Map<String, String>> vehicles;
+  final List<Map<String, String>> activeBookings;
 
-  HomePage({required this.vehicles});
+  HomePage({required this.vehicles, required this.activeBookings});
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -15,6 +16,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     int vehicleCount = widget.vehicles.length;
+    int activeBookingCount = widget.activeBookings.length;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -133,14 +135,35 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             const SizedBox(height: 8),
-            const Center(
-              child: Text(
-                'Nothing to show..',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 16,
-                ),
-              ),
+            Expanded(
+              child: activeBookingCount == 0
+                  ? Center(
+                      child: Text(
+                        'Nothing to show..',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 16,
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: activeBookingCount,
+                      itemBuilder: (context, index) {
+                        var booking = widget.activeBookings[index];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: ListTile(
+                            title: Text(
+                              'Booking ID: ${booking['id']}',
+                              style: const TextStyle(),
+                            ),
+                            subtitle: Text(
+                              'Car Info: ${booking['carInfo']}\nLocation: ${booking['location']}\nSlot: ${booking['slot']}\nStart: ${booking['startTime']}\nEnd: ${booking['endTime']}',
+                            ),
+                          ),
+                        );
+                      },
+                    ),
             ),
             const SizedBox(height: 20),
             ElevatedButton(

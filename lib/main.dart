@@ -33,6 +33,7 @@ class MyApp extends StatelessWidget {
           // "/mapscreen": (context) => MapScreen(),
           "/homepage": (context) => HomePage(
                 vehicles: [],
+                activeBookings: [],
               ),
           "/menu": (context) => MenuPage(),
           "/registervehicle": (context) => RegisterVehiclePage(vehicles: []),
