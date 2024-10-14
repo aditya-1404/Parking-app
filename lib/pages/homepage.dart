@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:parking_app/pages/registervehicle.dart';
+import 'package:parking_app/pages/registervehicle.dart' as registervehicle;
 import 'package:parking_app/pages/parkingspace.dart';
 
 class HomePage extends StatefulWidget {
@@ -171,9 +171,9 @@ class _HomePageState extends State<HomePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => RegisterVehiclePage(
+                    builder: (context) => registervehicle.RegisterVehiclePage(
                       vehicles: widget.vehicles,
-                    ),
+                    )
                   ),
                 );
               },
@@ -187,12 +187,12 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ParkingSpacePage(),
-                  ),
-                );
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(
+                //     builder: (context) => ParkingSpacePage(),
+                //   ),
+                // );
               },
               style: ElevatedButton.styleFrom(
                 minimumSize: Size(double.infinity, 50),

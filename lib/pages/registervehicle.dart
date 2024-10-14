@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:parking_app/pages/registervehiclesuccess.dart';
+import 'package:http/http.dart' as http; // Import the http package
+import 'dart:convert'; // To encode the body
 
 class RegisterVehiclePage extends StatefulWidget {
-
   final List<Map<String, String>> vehicles;
 
   RegisterVehiclePage({required this.vehicles});
@@ -15,15 +16,45 @@ class _RegisterVehiclePageState extends State<RegisterVehiclePage> {
   final _formKey = GlobalKey<FormState>();
 
   String vehicleNumber = '';
-  String model = '';
-  String color = '';
+  String vehicleName = '';
+  String vehicleType = 'SUV'; // Default dropdown value
+  String userId = ''; // New field for userId
+
+  // Function to send POST request to the API
+  Future<void> _registerVehicle(String plateNumber, String name, String type, String userId) async {
+    final url = Uri.parse('http://172.16.38.190:3000/addvehicle');
+
+    try {
+      // Send the post request
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'plateNumber': plateNumber,
+          'vehicleName': name,
+          'vehicleType': type,
+          'userId': userId, // Include userId in the request body
+        }),
+      );
+      // print(response);
+      if (response.statusCode == 200) {
+        // Handle success (e.g., navigate to success page)
+        print('Vehicle registered successfully!');
+      } else {
+        // Handle failure (show an error message)
+        print('Failed to register vehicle. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error occurred while registering vehicle: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xff422669),
-        title: Text('Register your vehicle'),
+        backgroundColor: const Color(0xff422669),
+        title: const Text('Register your vehicle'),
         foregroundColor: Colors.white,
       ),
       body: Padding(
@@ -33,7 +64,17 @@ class _RegisterVehiclePageState extends State<RegisterVehiclePage> {
           child: Column(
             children: [
               TextFormField(
-                decoration: InputDecoration(labelText: 'Vehicle Number'),
+                decoration: const InputDecoration(labelText: 'User ID (Phone Number)'),
+                onSaved: (value) => userId = value ?? '',
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your User ID (Phone Number)';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                decoration: const InputDecoration(labelText: 'Vehicle Number'),
                 onSaved: (value) => vehicleNumber = value ?? '',
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -43,21 +84,33 @@ class _RegisterVehiclePageState extends State<RegisterVehiclePage> {
                 },
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Model'),
-                onSaved: (value) => model = value ?? '',
+                decoration: const InputDecoration(labelText: 'Vehicle Name'),
+                onSaved: (value) => vehicleName = value ?? '',
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter vehicle model';
+                    return 'Please enter vehicle name';
                   }
                   return null;
                 },
               ),
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Color'),
-                onSaved: (value) => color = value ?? '',
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(labelText: 'Vehicle Type'),
+                value: vehicleType,
+                items: ['SUV', 'SEDAN', 'HATCHBACK', 'OTHERS']
+                    .map((type) => DropdownMenuItem<String>(
+                          value: type,
+                          child: Text(type),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    vehicleType = value ?? 'SUV';
+                  });
+                },
+                onSaved: (value) => vehicleType = value ?? 'SUV',
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter vehicle color';
+                    return 'Please select a vehicle type';
                   }
                   return null;
                 },
@@ -68,11 +121,14 @@ class _RegisterVehiclePageState extends State<RegisterVehiclePage> {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
 
+                    // Send the POST request to the API with the userId (phone number)
+                    _registerVehicle(vehicleNumber, vehicleName, vehicleType, userId);
+
                     // Create a vehicle map
                     Map<String, String> newVehicle = {
                       'number': vehicleNumber,
-                      'model': model,
-                      'color': color,
+                      'name': vehicleName,
+                      'type': vehicleType,
                     };
 
                     // Add the new vehicle to the list
@@ -91,11 +147,11 @@ class _RegisterVehiclePageState extends State<RegisterVehiclePage> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  minimumSize: Size(double.infinity, 50),
+                  minimumSize: const Size(double.infinity, 50),
                   foregroundColor: Colors.white,
-                  backgroundColor: Color(0xff422669),
+                  backgroundColor: const Color(0xff422669),
                 ),
-                child: Text('Register'),
+                child: const Text('Register'),
               ),
             ],
           ),
