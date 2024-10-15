@@ -187,12 +187,12 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(
-                //     builder: (context) => ParkingSpacePage(),
-                //   ),
-                // );
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ParkingSpacePage(),
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
                 minimumSize: Size(double.infinity, 50),

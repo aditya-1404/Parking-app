@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+
+void saveUserId(String userId) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setString('userId', userId);
+}
 
 class SignIn extends StatefulWidget {
   @override
@@ -36,6 +42,8 @@ class _SignInState extends State<SignIn> {
       final jsonResponse = jsonDecode(response.body);
       print(jsonResponse);
       if (jsonResponse['status'] == 200) {
+         String userId = emailController.text.trim();
+        saveUserId(userId);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Sign in successful!')),
         );

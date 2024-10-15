@@ -1,51 +1,112 @@
 import 'package:flutter/material.dart';
-import 'package:parking_app/pages/registervehiclesuccess.dart';
-import 'package:http/http.dart' as http; // Import the http package
-import 'dart:convert'; // To encode the body
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:geocoding/geocoding.dart';
+import 'slotbookingpage.dart';
+import 'package:parking_app/models/parking_spot.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 
-class RegisterVehiclePage extends StatefulWidget {
-  final List<Map<String, String>> vehicles;
-  final String userId; // Add userId (phone number)
-
-  RegisterVehiclePage({required this.vehicles, required this.userId}); // Pass userId
-
+class ParkingSpacePage extends StatefulWidget {
   @override
-  _RegisterVehiclePageState createState() => _RegisterVehiclePageState();
+  _ParkingSpacePageState createState() => _ParkingSpacePageState();
 }
 
-class _RegisterVehiclePageState extends State<RegisterVehiclePage> {
-  final _formKey = GlobalKey<FormState>();
+class _ParkingSpacePageState extends State<ParkingSpacePage> {
+  final TextEditingController _locationController = TextEditingController();
+  int? _selectedRadius = 1000;
+  GoogleMapController? _mapController;
+  List<ParkingSpot> _parkingSpots = [];
+  String _slotData = '';
 
-  String vehicleNumber = '';
-  String vehicleName = '';
-  String vehicleType = 'SUV'; // Default dropdown value
-
-  // Function to send POST request to the API
-  Future<void> _registerVehicle(String plateNumber, String name, String type, String userId) async {
-    final url = Uri.parse('https://spmps.onrender.com/addvehicle');
-
+  Future<void> _findParkingSpots() async {
     try {
-      // Send the post request
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'plateNumber': plateNumber,
-          'vehicleName': name,
-          'vehicleType': type,
-          'userId': userId, // Include userId in the request body
-        }),
-      );
+      final locationName = _locationController.text;
 
-      if (response.statusCode == 200) {
-        // Handle success (e.g., navigate to success page)
-        print('Vehicle registered successfully!');
+      // Get locations from the entered address
+      final locations = await locationFromAddress(locationName);
+
+      if (locations.isNotEmpty) {
+        final location = locations.first;
+
+        // Extract the pincode using the postal code field from geocoding
+        final placemarks = await placemarkFromCoordinates(location.latitude, location.longitude);
+        final pincode = placemarks.first.postalCode;
+
+        // Make the request to your API with the pincode
+        final url = Uri.parse(
+          'https://spmps.onrender.com/get_slot_by_location?pincode=${pincode}&radius=${_selectedRadius}&latitude=${location.latitude}&longitude=${location.longitude}',
+        );
+        final response = await http.get(
+          url,
+          headers: {'Content-Type': 'application/json'},
+        );
+        print(response.body);
+
+        if (response.statusCode == 200) {
+          // Parse the response body
+          final data = json.decode(response.body)['data'] as List;
+
+          // Convert the response data into ParkingSpot objects
+          List<ParkingSpot> spots = data.map((json) {
+            return ParkingSpot(
+              locationId: json['location_id'],
+              locationName: json['location_name'],
+              pincode: json['pincode'],
+              address: json['address'],
+              city: json['city'],
+              totalParkingLots: int.parse(json['total_parking_lots']),
+              totalRevenue: json['total_revenue'],
+              isOpen: json['isopen'],
+              availableSlots: int.parse(json['available_slots']),
+              latitude: json['latitude'],
+              longitude: json['longitude'],
+              distanceKm: json['distance_km'],
+            );
+          }).toList();
+
+          // Sort spots by distance
+          spots.sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
+
+          // Update state with sorted parking spots
+          setState(() {
+            _parkingSpots = spots;
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Parking slots found for pincode: $pincode')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to fetch slots for pincode $pincode')),
+          );
+        }
       } else {
-        // Handle failure (show an error message)
-        print('Failed to register vehicle. Status code: ${response.statusCode}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Invalid location entered.')),
+        );
       }
     } catch (e) {
-      print('Error occurred while registering vehicle: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
+  }
+
+  Future<List<String>> _getLocationSuggestions(String query) async {
+    final url = Uri.parse(
+      'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query&key=AIzaSyAMtI0X-3jyLGu0qO3UOb4UmymnZ50yJ68',
+    );
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final suggestions = (data['predictions'] as List)
+          .map((prediction) => prediction['description'] as String)
+          .toList();
+      return suggestions;
+    } else {
+      throw Exception('Failed to load suggestions');
     }
   }
 
@@ -53,100 +114,135 @@ class _RegisterVehiclePageState extends State<RegisterVehiclePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xff422669),
-        title: const Text('Register your vehicle'),
+        backgroundColor: Color(0xff422669),
+        title: Text('Parking Space'),
         foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Vehicle Number'),
-                onSaved: (value) => vehicleNumber = value ?? '',
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter vehicle number';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Vehicle Name'),
-                onSaved: (value) => vehicleName = value ?? '',
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter vehicle name';
-                  }
-                  return null;
-                },
-              ),
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(labelText: 'Vehicle Type'),
-                value: vehicleType,
-                items: ['SUV', 'SEDAN', 'HATCHBACK', 'OTHERS']
-                    .map((type) => DropdownMenuItem<String>(
-                          value: type,
-                          child: Text(type),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    vehicleType = value ?? 'SUV';
-                  });
-                },
-                onSaved: (value) => vehicleType = value ?? 'SUV',
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please select a vehicle type';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState!.save();
-
-                    // Send the POST request to the API with the userId (phone number)
-                    _registerVehicle(vehicleNumber, vehicleName, vehicleType, widget.userId);
-
-                    // Create a vehicle map
-                    Map<String, String> newVehicle = {
-                      'number': vehicleNumber,
-                      'name': vehicleName,
-                      'type': vehicleType,
-                    };
-
-                    // Add the new vehicle to the list
-                    List<Map<String, String>> updatedVehicles =
-                        List.from(widget.vehicles)..add(newVehicle);
-
-                    // Navigate to the SuccessfulPage
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SuccessfulPage(
-                          vehicles: updatedVehicles,
-                        ),
-                      ),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  foregroundColor: Colors.white,
-                  backgroundColor: const Color(0xff422669),
+        child: Column(
+          children: [
+            TypeAheadFormField(
+              textFieldConfiguration: TextFieldConfiguration(
+                controller: _locationController,
+                decoration: InputDecoration(
+                  labelText: 'Location',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.location_on),
                 ),
-                child: const Text('Register'),
               ),
-            ],
-          ),
+              suggestionsCallback: _getLocationSuggestions,
+              itemBuilder: (context, suggestion) {
+                return ListTile(
+                  title: Text(suggestion),
+                );
+              },
+              onSuggestionSelected: (suggestion) {
+                _locationController.text = suggestion;
+              },
+            ),
+            SizedBox(height: 16),
+            DropdownButtonFormField(
+              value: _selectedRadius,
+              items: [
+                DropdownMenuItem(child: Text('1 km'), value: 1000),
+                DropdownMenuItem(child: Text('5 km'), value: 5000),
+                DropdownMenuItem(child: Text('10 km'), value: 10000),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _selectedRadius = value;
+                });
+              },
+              decoration: InputDecoration(
+                labelText: 'Discovery radius',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.map),
+              ),
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _findParkingSpots,
+              child: Text('Find Parking Spots'),
+            ),
+            SizedBox(height: 16),
+            Expanded(
+              child: ListView.builder(
+                itemCount: _parkingSpots.length,
+                itemBuilder: (context, index) {
+                  final spot = _parkingSpots[index];
+                  return Card(
+                    elevation: 4.0,
+                    margin: EdgeInsets.symmetric(vertical: 8.0),
+                    child: Column(
+                      children: [
+                        Image.network(
+                          'https://maps.googleapis.com/maps/api/staticmap?center=${spot.latitude},${spot.longitude}&zoom=18&size=600x300&maptype=roadmap&markers=color:red%7C${spot.latitude},${spot.longitude}&key=AIzaSyAMtI0X-3jyLGu0qO3UOb4UmymnZ50yJ68',
+                          fit: BoxFit.cover,
+                          height: 150.0,
+                          width: double.infinity,
+                        ),
+                        ListTile(
+                          title: Text(
+                            spot.locationName,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(height: 4),
+                              Text(spot.address),
+                              SizedBox(height: 4),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('${spot.distanceKm.toStringAsFixed(2)} km',
+                                      style: TextStyle(color: Colors.grey[700])),
+                                  Text('Rs. 20/hour', style: TextStyle(color: Colors.blue)),
+                                ],
+                              ),
+                            ],
+                          ),
+                          trailing: Text(
+                            spot.isOpen ? 'Available Slots:${spot.availableSlots}' : 'Full',
+                            style: TextStyle(
+                                color: spot.isOpen ? Colors.green : Colors.red,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          onTap: () {
+                            // Navigator.push(
+                            //   context,
+                            //   MaterialPageRoute(
+                            //     builder: (context) => SlotBookingPage(spot: spot),
+                            //   ),
+                            // );
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Handle "See more" button press
+              },
+              child: Text('See more'),
+            ),
+          ],
         ),
       ),
     );
   }
 }
+
