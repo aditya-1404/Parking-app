@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:parking_app/pages/registervehiclesuccess.dart';
 import 'package:http/http.dart' as http; // Import the http package
 import 'dart:convert'; // To encode the body
+import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
 
 class RegisterVehiclePage extends StatefulWidget {
   final List<Map<String, String>> vehicles;
@@ -18,14 +19,29 @@ class _RegisterVehiclePageState extends State<RegisterVehiclePage> {
   String vehicleNumber = '';
   String vehicleName = '';
   String vehicleType = 'SUV'; // Default dropdown value
-  String userId = ''; // New field for userId
+  String userId = ''; // To store userId fetched from SharedPreferences
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserId(); // Fetch userId when the widget is initialized
+  }
+
+  // Function to get userId from SharedPreferences
+  Future<void> _getUserId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userId = prefs.getString('userId') ?? ''; // Set userId from SharedPreferences
+    });
+  }
 
   // Function to send POST request to the API
   Future<void> _registerVehicle(String plateNumber, String name, String type, String userId) async {
-    final url = Uri.parse('http://172.16.38.190:3000/addvehicle');
+    final url = Uri.parse('https://spmps.onrender.com/addvehicle');
 
     try {
       // Send the post request
+      print(userId);
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
@@ -36,7 +52,6 @@ class _RegisterVehiclePageState extends State<RegisterVehiclePage> {
           'userId': userId, // Include userId in the request body
         }),
       );
-      // print(response);
       if (response.statusCode == 200) {
         // Handle success (e.g., navigate to success page)
         print('Vehicle registered successfully!');
@@ -63,16 +78,6 @@ class _RegisterVehiclePageState extends State<RegisterVehiclePage> {
           key: _formKey,
           child: Column(
             children: [
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'User ID (Phone Number)'),
-                onSaved: (value) => userId = value ?? '',
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your User ID (Phone Number)';
-                  }
-                  return null;
-                },
-              ),
               TextFormField(
                 decoration: const InputDecoration(labelText: 'Vehicle Number'),
                 onSaved: (value) => vehicleNumber = value ?? '',
@@ -121,7 +126,7 @@ class _RegisterVehiclePageState extends State<RegisterVehiclePage> {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
 
-                    // Send the POST request to the API with the userId (phone number)
+                    // Send the POST request to the API with the userId
                     _registerVehicle(vehicleNumber, vehicleName, vehicleType, userId);
 
                     // Create a vehicle map

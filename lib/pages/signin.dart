@@ -2,10 +2,78 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 void saveUserId(String userId) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setString('userId', userId);
+
+  initializeService();
+}
+// Function to get userId from SharedPreferences
+Future<String> _getUserId() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getString('userId') ?? 'default_user_id';
+}
+
+Future<void> initializeService() async {
+  final service = FlutterBackgroundService();
+
+  await service.configure(
+    androidConfiguration: AndroidConfiguration(
+      onStart: onStart,
+      autoStart: true,
+      isForegroundMode: true,
+    ),
+    iosConfiguration: IosConfiguration(
+      autoStart: true,
+      onForeground: onStart,
+      onBackground: onIosBackground,
+    ),
+  );
+  service.startService();
+}
+
+@pragma('vm:entry-point')
+void onStart(ServiceInstance service) async {
+  // Get userId from SharedPreferences
+  String userId = await _getUserId();
+
+  // Connect to the Socket.IO server
+  IO.Socket socket = IO.io('http://172.16.37.125:3000', <String, dynamic>{
+    'transports': ['websocket'],
+    'query': {'userId': userId}, // Using the fetched userId
+  });
+
+  // Listen for connection
+  socket.onConnect((_) {
+    service.invoke('update', {'status': 'Connected to Socket.IO server'});
+    print('Connected to Socket.IO server');
+  });
+
+  // Listen for notifications
+  socket.on('notification', (data) {
+    print('New Notification: $data');
+    service.invoke('notification', {'data': data});
+  });
+
+  // Handle disconnection
+  socket.onDisconnect((_) {
+    service.invoke('update', {'status': 'Disconnected from server'});
+    print('Disconnected from the server');
+  });
+
+  // Keep the service alive
+  service.on('stopService').listen((event) {
+    service.stopSelf();
+  });
+}
+
+bool onIosBackground(ServiceInstance service) {
+  WidgetsFlutterBinding.ensureInitialized();
+  print('iOS background fetch executed');
+  return true;
 }
 
 class SignIn extends StatefulWidget {
