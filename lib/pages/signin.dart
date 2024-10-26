@@ -4,6 +4,15 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:permission_handler/permission_handler.dart';
+
+Future<void> requestExactAlarmPermission() async {
+  if (await Permission.scheduleExactAlarm.request().isGranted) {
+    // Permission granted, you can now schedule exact alarms
+  } else {
+    // Permission denied
+  }
+}
 
 void saveUserId(String userId) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -41,7 +50,7 @@ void onStart(ServiceInstance service) async {
   String userId = await _getUserId();
 
   // Connect to the Socket.IO server
-  IO.Socket socket = IO.io('http://172.16.37.125:3000', <String, dynamic>{
+  IO.Socket socket = IO.io('https://spmps.onrender.com', <String, dynamic>{
     'transports': ['websocket'],
     'query': {'userId': userId}, // Using the fetched userId
   });
