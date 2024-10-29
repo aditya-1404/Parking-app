@@ -1,21 +1,73 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:parking_app/pages/registervehicle.dart' as registervehicle;
 import 'package:parking_app/pages/parkingspace.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+Future<String> _getUserId() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getString('userId') ?? 'default_user_id';
+}
 
 class HomePage extends StatefulWidget {
-  final List<Map<String, String>> vehicles;
   final List<Map<String, String>> activeBookings;
 
-  HomePage({required this.vehicles, required this.activeBookings});
+  HomePage({required this.activeBookings});
 
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
+  List<Map<String, dynamic>> vehicles = []; // Change type to `dynamic`
+
+  @override
+  void initState() {
+    super.initState();
+    fetchVehicles();
+  }
+
+  Future<void> fetchVehicles() async {
+    final userId = await _getUserId();
+    final url = Uri.parse('https://spmps.onrender.com/getvehicle');
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'userId': userId}),
+      );
+      print(response.body);
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        if (responseData['status'] == 200) {
+          setState(() {
+            vehicles = (responseData['data'] as List).map((vehicle) {
+              return {
+                'number': vehicle['plate_number'] as String,
+                'model': vehicle['vehicle_name'] as String,
+                'type': vehicle['vehicle_type'] as String,
+              };
+            }).toList();
+          });
+        } else {
+          showError('Failed to retrieve vehicles');
+        }
+      } else {
+        showError('Error ${response.statusCode}');
+      }
+    } catch (e) {
+      showError('Failed to connect to the server');
+    }
+  }
+
+  void showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
   @override
   Widget build(BuildContext context) {
-    int vehicleCount = widget.vehicles.length;
+    int vehicleCount = vehicles.length;
     int activeBookingCount = widget.activeBookings.length;
 
     return Scaffold(
@@ -107,7 +159,7 @@ class _HomePageState extends State<HomePage> {
                   : ListView.builder(
                       itemCount: vehicleCount,
                       itemBuilder: (context, index) {
-                        var vehicle = widget.vehicles[index];
+                        var vehicle = vehicles[index];
                         return Card(
                           margin: const EdgeInsets.symmetric(vertical: 8.0),
                           child: ListTile(
@@ -116,7 +168,7 @@ class _HomePageState extends State<HomePage> {
                               style: const TextStyle(),
                             ),
                             subtitle: Text(
-                              'Model type: ${vehicle['model']}\nColor: ${vehicle['color']}',
+                              'Model: ${vehicle['model']}\nType: ${vehicle['type']}',
                             ),
                             trailing: const Icon(Icons.edit),
                             onTap: () {
@@ -172,8 +224,11 @@ class _HomePageState extends State<HomePage> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => registervehicle.RegisterVehiclePage(
-                      vehicles: widget.vehicles,
-                    )
+                      vehicles: vehicles
+                          .map((vehicle) => vehicle
+                              .map((key, value) => MapEntry(key, value.toString())))
+                          .toList(),
+                    ),
                   ),
                 );
               },

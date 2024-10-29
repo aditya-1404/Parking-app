@@ -39,7 +39,6 @@ class MyApp extends StatelessWidget {
         "/signup": (context) => SignUpScreen(),
         // "/mapscreen": (context) => MapScreen(),
         "/homepage": (context) => HomePage(
-              vehicles: [],
               activeBookings: [],
             ),
         "/menu": (context) => MenuPage(),

@@ -56,7 +56,6 @@ class SuccessfulPage extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) => HomePage(
-                        vehicles: vehicles,
                         activeBookings: [],
                       ),
                     ),

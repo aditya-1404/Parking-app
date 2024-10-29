@@ -52,6 +52,7 @@ class _RegisterVehiclePageState extends State<RegisterVehiclePage> {
           'userId': userId, // Include userId in the request body
         }),
       );
+      print(response);
       if (response.statusCode == 200) {
         // Handle success (e.g., navigate to success page)
         print('Vehicle registered successfully!');
