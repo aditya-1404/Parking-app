@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 Future<void> requestExactAlarmPermission() async {
   if (await Permission.scheduleExactAlarm.request().isGranted) {
@@ -44,10 +45,17 @@ Future<void> initializeService() async {
   service.startService();
 }
 
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
   // Get userId from SharedPreferences
   String userId = await _getUserId();
+
+  // Initialize notifications
+  const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
+  final InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
   // Connect to the Socket.IO server
   IO.Socket socket = IO.io('https://spmps.onrender.com', <String, dynamic>{
@@ -62,9 +70,25 @@ void onStart(ServiceInstance service) async {
   });
 
   // Listen for notifications
-  socket.on('notification', (data) {
+  socket.on('notification', (data) async {
     print('New Notification: $data');
     service.invoke('notification', {'data': data});
+
+    // Show local notification
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      'New Notification',
+      data.toString(),
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'channel_id',
+          'Channel Name',
+          importance: Importance.max,
+          priority: Priority.high,
+          showWhen: true,
+        ),
+      ),
+    );
   });
 
   // Handle disconnection
