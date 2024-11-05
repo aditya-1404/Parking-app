@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:parking_app/pages/homepage.dart';
 
 class SlotBookedPage extends StatelessWidget {
   final String bookingId;

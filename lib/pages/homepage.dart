@@ -28,6 +28,9 @@ class _HomePageState extends State<HomePage> {
     fetchVehicles();
   }
 
+
+  
+
   Future<void> fetchVehicles() async {
     final userId = await _getUserId();
     final url = Uri.parse('https://spmps.onrender.com/getvehicle');
@@ -62,7 +65,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   void showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -84,22 +88,56 @@ class _HomePageState extends State<HomePage> {
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
-          children: const [
+          children: <Widget>[
             DrawerHeader(
               decoration: BoxDecoration(
-                color: Color(0xff422669),
-              ),
-              child: Text(
-                'Menu',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xff1F1133), Color(0xff5D3299)],
                 ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const CircleAvatar(
+                    radius: 15,
+                    backgroundImage: AssetImage('assets/images/user.png'),
+                    backgroundColor: Colors.transparent,
+                  ),
+                  const SizedBox(height: 10),
+                  // Text(
+      
+                  //   style: TextStyle(
+                  //     color: Colors.white,
+                  //     fontSize: 20,
+                  //   ),
+                  // ),
+                  // Text(
+                  //   userEmail,
+                  //   style: TextStyle(
+                  //     color: Colors.white,
+                  //     fontSize: 14,
+                  //   ),
+                  // ),
+                ],
               ),
             ),
             ListTile(
               leading: Icon(Icons.home),
               title: Text('Home'),
+            ),
+            ListTile(
+              leading: Icon(Icons.book), // Icon for My Bookings
+              title: Text('My Bookings'),
+            ),
+            ListTile(
+              leading: Icon(Icons.location_on), // Icon for Find My Parking
+              title: Text('Find My Parking'),
+            ),
+            ListTile(
+              leading: Icon(Icons.payment), // Icon for My Payment History
+              title: Text('My Payment History'),
             ),
             ListTile(
               leading: Icon(Icons.directions_car),
@@ -108,6 +146,11 @@ class _HomePageState extends State<HomePage> {
             ListTile(
               leading: Icon(Icons.settings),
               title: Text('Settings'),
+            ),
+            Spacer(),
+            ListTile(
+              leading: Icon(Icons.logout), // Icon for Log Out
+              title: Text('Log Out'),
             ),
           ],
         ),
@@ -225,8 +268,8 @@ class _HomePageState extends State<HomePage> {
                   MaterialPageRoute(
                     builder: (context) => registervehicle.RegisterVehiclePage(
                       vehicles: vehicles
-                          .map((vehicle) => vehicle
-                              .map((key, value) => MapEntry(key, value.toString())))
+                          .map((vehicle) => vehicle.map(
+                              (key, value) => MapEntry(key, value.toString())))
                           .toList(),
                     ),
                   ),

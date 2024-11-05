@@ -32,8 +32,8 @@ class SignUpScreen extends StatelessWidget {
       );
 
       if (response.statusCode == 200) {
+       
         ScaffoldMessenger.of(context).showSnackBar(
-
           SnackBar(content: Text('Registration successful!')),
         );
         // Redirect to the sign-in page

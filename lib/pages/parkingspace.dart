@@ -3,9 +3,9 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:geocoding/geocoding.dart';
-import 'slotbookingpage.dart';
 import 'package:parking_app/models/parking_spot.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+
 
 class ParkingSpacePage extends StatefulWidget {
   @override
