@@ -71,25 +71,34 @@ void onStart(ServiceInstance service) async {
 
   // Listen for notifications
   socket.on('notification', (data) async {
-    print('New Notification: $data');
-    service.invoke('notification', {'data': data});
+  // Extract the title and body from the data Map
+  var notificationData = jsonDecode(data);
+  String title = notificationData['title'];
+  String body = notificationData['body'];
 
-    // Show local notification
-    await flutterLocalNotificationsPlugin.show(
-      0,
-      'New Notification',
-      data.toString(),
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'channel_id',
-          'Channel Name',
-          importance: Importance.max,
-          priority: Priority.high,
-          showWhen: true,
+  print('New Notification: $data');
+  service.invoke('notification', {'data': data});
+
+  // Show local notification with the extracted title and body
+  await flutterLocalNotificationsPlugin.show(
+    0,
+    title,  // Display the extracted title
+    body,    // Display the extracted body
+    NotificationDetails(
+      android: AndroidNotificationDetails(
+        'channel_id',
+        'Channel Name',
+        importance: Importance.max,
+        priority: Priority.high,
+        showWhen: true,
+        styleInformation: BigTextStyleInformation(
+          body, // Pass body here for expandable text
+          contentTitle: title,
         ),
       ),
-    );
-  });
+    ),
+  );
+});
 
   // Handle disconnection
   socket.onDisconnect((_) {

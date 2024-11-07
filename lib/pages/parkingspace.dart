@@ -95,7 +95,7 @@ class _ParkingSpacePageState extends State<ParkingSpacePage> {
 
   Future<List<String>> _getLocationSuggestions(String query) async {
     final url = Uri.parse(
-      'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query&key=AIzaSyAMtI0X-3jyLGu0qO3UOb4UmymnZ50yJ68',
+      'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query&key=AIzaSyCi3svuYUNITa7NvsxzrohVx_v0QYyGhkY',
     );
     final response = await http.get(url);
 
@@ -183,7 +183,7 @@ class _ParkingSpacePageState extends State<ParkingSpacePage> {
                     child: Column(
                       children: [
                         Image.network(
-                          'https://maps.googleapis.com/maps/api/staticmap?center=${spot.latitude},${spot.longitude}&zoom=18&size=600x300&maptype=roadmap&markers=color:red%7C${spot.latitude},${spot.longitude}&key=AIzaSyAMtI0X-3jyLGu0qO3UOb4UmymnZ50yJ68',
+                          'https://maps.googleapis.com/maps/api/staticmap?center=${spot.latitude},${spot.longitude}&zoom=18&size=600x300&maptype=roadmap&markers=color:red%7C${spot.latitude},${spot.longitude}&key=AIzaSyCi3svuYUNITa7NvsxzrohVx_v0QYyGhkY',
                           fit: BoxFit.cover,
                           height: 150.0,
                           width: double.infinity,
