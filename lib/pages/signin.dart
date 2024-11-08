@@ -21,7 +21,7 @@ void saveUserId(String userId) async {
 
   initializeService();
 }
-// Function to get userId from SharedPreferences
+
 Future<String> _getUserId() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   return prefs.getString('userId') ?? '';
@@ -49,64 +49,55 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterL
 
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
-  // Get userId from SharedPreferences
   String userId = await _getUserId();
 
-  // Initialize notifications
   const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
   final InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
-  // Connect to the Socket.IO server
   IO.Socket socket = IO.io('https://spmps.onrender.com', <String, dynamic>{
     'transports': ['websocket'],
-    'query': {'userId': userId}, // Using the fetched userId
+    'query': {'userId': userId},
   });
 
-  // Listen for connection
   socket.onConnect((_) {
     service.invoke('update', {'status': 'Connected to Socket.IO server'});
     print('Connected to Socket.IO server');
   });
 
-  // Listen for notifications
   socket.on('notification', (data) async {
-  // Extract the title and body from the data Map
-  var notificationData = jsonDecode(data);
-  String title = notificationData['title'];
-  String body = notificationData['body'];
+    var notificationData = jsonDecode(data);
+    String title = notificationData['title'];
+    String body = notificationData['body'];
 
-  print('New Notification: $data');
-  service.invoke('notification', {'data': data});
+    print('New Notification: $data');
+    service.invoke('notification', {'data': data});
 
-  // Show local notification with the extracted title and body
-  await flutterLocalNotificationsPlugin.show(
-    0,
-    title,  // Display the extracted title
-    body,    // Display the extracted body
-    NotificationDetails(
-      android: AndroidNotificationDetails(
-        'channel_id',
-        'Channel Name',
-        importance: Importance.max,
-        priority: Priority.high,
-        showWhen: true,
-        styleInformation: BigTextStyleInformation(
-          body, // Pass body here for expandable text
-          contentTitle: title,
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      title,
+      body,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'channel_id',
+          'Channel Name',
+          importance: Importance.max,
+          priority: Priority.high,
+          showWhen: true,
+          styleInformation: BigTextStyleInformation(
+            body,
+            contentTitle: title,
+          ),
         ),
       ),
-    ),
-  );
-});
+    );
+  });
 
-  // Handle disconnection
   socket.onDisconnect((_) {
     service.invoke('update', {'status': 'Disconnected from server'});
     print('Disconnected from the server');
   });
 
-  // Keep the service alive
   service.on('stopService').listen((event) {
     service.stopSelf();
   });
@@ -128,8 +119,22 @@ class _SignInState extends State<SignIn> {
   final TextEditingController passwordController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    _checkUserLogin();
+  }
+
+  Future<void> _checkUserLogin() async {
+    String userId = await _getUserId();
+    print(userId);
+    if (userId.isNotEmpty) {
+      initializeService(); // Directly start the service if userId exists
+      Navigator.of(context).pushReplacementNamed('/homepage');
+    }
+  }
+
+  @override
   void dispose() {
-    // Dispose controllers when the widget is destroyed
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
@@ -139,7 +144,7 @@ class _SignInState extends State<SignIn> {
     print(emailController.text.trim());
     try {
       final response = await http.post(
-        Uri.parse('https://spmps.onrender.com/login'), // Your custom API endpoint
+        Uri.parse('https://spmps.onrender.com/login'),
         headers: <String, String>{
           'Content-Type': 'application/json',
         },
@@ -152,15 +157,13 @@ class _SignInState extends State<SignIn> {
       final jsonResponse = jsonDecode(response.body);
       print(jsonResponse);
       if (jsonResponse['status'] == 200) {
-         String userId = emailController.text.trim();
+        String userId = emailController.text.trim();
         saveUserId(userId);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Sign in successful!')),
         );
 
-        // Navigate to homepage
-        Navigator.of(context).pop();
-        Navigator.of(context).pushNamed('/homepage');
+        Navigator.of(context).pushReplacementNamed('/homepage');
       } else {
         String message;
         if (jsonResponse['status'] == 404) {
