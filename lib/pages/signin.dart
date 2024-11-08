@@ -24,7 +24,7 @@ void saveUserId(String userId) async {
 // Function to get userId from SharedPreferences
 Future<String> _getUserId() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  return prefs.getString('userId') ?? 'default_user_id';
+  return prefs.getString('userId') ?? '';
 }
 
 Future<void> initializeService() async {

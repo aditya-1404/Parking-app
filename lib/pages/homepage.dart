@@ -7,9 +7,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 Future<String> _getUserId() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  return prefs.getString('userId') ?? 'default_user_id';
+  return prefs.getString('userId') ?? '';
 }
-
+Future<void> _logout(BuildContext context) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear(); // Clears all shared preferences data
+    // final userIdd = await _getUserId();
+    // print(userIdd);
+    // Navigate to Sign In page after logout
+    Navigator.pushReplacementNamed(context, '/signin'); // Adjust route name to match your app's routing
+  }
 class HomePage extends StatefulWidget {
   final List<Map<String, String>> activeBookings;
 
@@ -86,75 +93,63 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xff1F1133), Color(0xff5D3299)],
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          DrawerHeader(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xff1F1133), Color(0xff5D3299)],
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const CircleAvatar(
+                  radius: 15,
+                  backgroundImage: AssetImage('assets/images/user.png'),
+                  backgroundColor: Colors.transparent,
                 ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const CircleAvatar(
-                    radius: 15,
-                    backgroundImage: AssetImage('assets/images/user.png'),
-                    backgroundColor: Colors.transparent,
-                  ),
-                  const SizedBox(height: 10),
-                  // Text(
-      
-                  //   style: TextStyle(
-                  //     color: Colors.white,
-                  //     fontSize: 20,
-                  //   ),
-                  // ),
-                  // Text(
-                  //   userEmail,
-                  //   style: TextStyle(
-                  //     color: Colors.white,
-                  //     fontSize: 14,
-                  //   ),
-                  // ),
-                ],
-              ),
+                const SizedBox(height: 10),
+                // User information widgets here (e.g., name, email)
+              ],
             ),
-            ListTile(
-              leading: Icon(Icons.home),
-              title: Text('Home'),
-            ),
-            ListTile(
-              leading: Icon(Icons.book), // Icon for My Bookings
-              title: Text('My Bookings'),
-            ),
-            ListTile(
-              leading: Icon(Icons.location_on), // Icon for Find My Parking
-              title: Text('Find My Parking'),
-            ),
-            ListTile(
-              leading: Icon(Icons.payment), // Icon for My Payment History
-              title: Text('My Payment History'),
-            ),
-            ListTile(
-              leading: Icon(Icons.directions_car),
-              title: Text('My Vehicles'),
-            ),
-            ListTile(
-              leading: Icon(Icons.settings),
-              title: Text('Settings'),
-            ),
-            Spacer(),
-            ListTile(
-              leading: Icon(Icons.logout), // Icon for Log Out
-              title: Text('Log Out'),
-            ),
-          ],
-        ),
+          ),
+          ListTile(
+            leading: Icon(Icons.home),
+            title: Text('Home'),
+          ),
+          ListTile(
+            leading: Icon(Icons.book),
+            title: Text('My Bookings'),
+          ),
+          ListTile(
+            leading: Icon(Icons.location_on),
+            title: Text('Find My Parking'),
+          ),
+          ListTile(
+            leading: Icon(Icons.payment),
+            title: Text('My Payment History'),
+          ),
+          ListTile(
+            leading: Icon(Icons.directions_car),
+            title: Text('My Vehicles'),
+          ),
+          ListTile(
+            leading: Icon(Icons.settings),
+            title: Text('Settings'),
+          ),
+          Spacer(),
+          ListTile(
+            leading: Icon(Icons.logout),
+            title: Text('Log Out'),
+            onTap: () => _logout(context),
+          ),
+        ],
       ),
+    ),
       body: Padding(
         padding: const EdgeInsets.all(40.0),
         child: Column(
