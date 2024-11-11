@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:parking_app/pages/bookings.dart';
-import 'package:parking_app/pages/menu.dart';
 import 'package:parking_app/pages/signin.dart';
 import 'package:parking_app/pages/signup.dart';
 import 'package:parking_app/pages/welcomepage.dart';
@@ -10,6 +9,7 @@ import 'package:parking_app/pages/homepage.dart';
 import 'package:parking_app/pages/registervehicle.dart';
 import 'package:parking_app/pages/registervehiclesuccess.dart';
 import 'package:parking_app/pages/vehicles.dart';
+import 'package:parking_app/pages/paymentpage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,14 +33,15 @@ class MyApp extends StatelessWidget {
         "/signin": (context) => SignIn(),
         "/signup": (context) => SignUpScreen(),
         // "/mapscreen": (context) => MapScreen(),
+        // "/homepage": (context) => PaymentApp(),
         "/homepage": (context) => HomePage(
               activeBookings: [],
             ),
-        "/menu": (context) => MenuPage(),
         "/registervehicle": (context) => RegisterVehiclePage(vehicles: []),
         "/registervehiclesuccess": (context) => SuccessfulPage(vehicles: []),
         "/vehicles": (context) => VehiclesPage(),
-        "bookings": (context) => BookingsPage()
+        "bookings": (context) => BookingsPage(),
+        '/paymentPage': (context) => PaymentPage(),
       },
     );
   }
