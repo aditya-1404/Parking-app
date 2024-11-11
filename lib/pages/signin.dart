@@ -91,6 +91,7 @@ void onStart(ServiceInstance service) async {
         ),
       ),
     );
+
   });
 
   socket.onDisconnect((_) {

@@ -8,6 +8,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:parking_app/pages/homepage.dart';
 import 'package:parking_app/pages/registervehicle.dart';
 import 'package:parking_app/pages/registervehiclesuccess.dart';
+import 'package:parking_app/pages/paymentpage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,12 +34,13 @@ class MyApp extends StatelessWidget {
         "/signin": (context) => SignIn(),
         "/signup": (context) => SignUpScreen(),
         // "/mapscreen": (context) => MapScreen(),
+        // "/homepage": (context) => PaymentApp(),
         "/homepage": (context) => HomePage(
               activeBookings: [],
             ),
-        "/menu": (context) => MenuPage(),
         "/registervehicle": (context) => RegisterVehiclePage(vehicles: []),
         "/registervehiclesuccess": (context) => SuccessfulPage(vehicles: []),
+        '/paymentPage': (context) => PaymentPage(),
       },
     );
   }
