@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:parking_app/pages/bookings.dart';
 import 'package:parking_app/pages/menu.dart';
 import 'package:parking_app/pages/signin.dart';
 import 'package:parking_app/pages/signup.dart';
@@ -8,6 +9,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:parking_app/pages/homepage.dart';
 import 'package:parking_app/pages/registervehicle.dart';
 import 'package:parking_app/pages/registervehiclesuccess.dart';
+import 'package:parking_app/pages/vehicles.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,8 +17,6 @@ void main() async {
   // await initializeService();
   runApp(MyApp());
 }
-
-
 
 class MyApp extends StatelessWidget {
   @override
@@ -39,6 +39,8 @@ class MyApp extends StatelessWidget {
         "/menu": (context) => MenuPage(),
         "/registervehicle": (context) => RegisterVehiclePage(vehicles: []),
         "/registervehiclesuccess": (context) => SuccessfulPage(vehicles: []),
+        "/vehicles": (context) => VehiclesPage(),
+        "bookings": (context) => BookingsPage()
       },
     );
   }

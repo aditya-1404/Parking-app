@@ -22,6 +22,11 @@ void saveUserId(String userId) async {
   initializeService();
 }
 
+Future<void> saveUserEmail(String email) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setString('userEmail', email);
+}
+
 Future<String> _getUserId() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   return prefs.getString('userId') ?? '';
@@ -45,14 +50,17 @@ Future<void> initializeService() async {
   service.startService();
 }
 
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
 
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
   String userId = await _getUserId();
 
-  const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
-  final InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+  final InitializationSettings initializationSettings =
+      InitializationSettings(android: initializationSettingsAndroid);
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
   IO.Socket socket = IO.io('https://spmps.onrender.com', <String, dynamic>{
@@ -159,6 +167,9 @@ class _SignInState extends State<SignIn> {
       if (jsonResponse['status'] == 200) {
         String userId = emailController.text.trim();
         saveUserId(userId);
+        //changed here for email stroringgg
+        String email = emailController.text.trim();
+        await saveUserEmail(email);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Sign in successful!')),
         );
