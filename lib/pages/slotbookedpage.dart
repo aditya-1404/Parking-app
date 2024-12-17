@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart'; // Import QR Flutter package
+import 'global_booking.dart';  // Import global bookings
+import 'booking.dart';  // Import Booking class
 
 class SlotBookedPage extends StatelessWidget {
   final String bookingId;
@@ -11,7 +14,17 @@ class SlotBookedPage extends StatelessWidget {
     required this.carInfo,
     required this.address,
     required this.slotCode,
-  });
+  }) {
+    // Add the current booking to the global list
+    globalBookings.add(
+      Booking(
+        bookingId: bookingId,
+        carInfo: carInfo,
+        address: address,
+        slotCode: slotCode,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,14 +62,25 @@ class SlotBookedPage extends StatelessWidget {
             ),
             SizedBox(height: 24),
             _buildInfoRow('Booking Id', bookingId),
-            _buildInfoRow('Car Info', carInfo),
             _buildInfoRow('Address', trimAddress(address, 35)),
             _buildInfoRow('Slot Code', slotCode),
             SizedBox(height: 24),
             Center(
-              child: Text(
-                'Scan at the exit',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              child: Column(
+                children: [
+                  Text(
+                    'Scan at the exit',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 16),
+                  // QR Code
+                  QrImageView(
+                    data: generateBookingInfo(),
+                    version: QrVersions.auto,
+                    size: 110.0,
+                    gapless: false,
+                  ),
+                ],
               ),
             ),
             SizedBox(height: 24),
@@ -68,10 +92,12 @@ class SlotBookedPage extends StatelessWidget {
                     onPressed: () {
                       Navigator.of(context).pushNamed('/homepage');
                     },
-                    child: Text('Go to Home page',
-                    style: TextStyle(color: Colors.white),),
+                    child: Text(
+                      'Go to Home page',
+                      style: TextStyle(color: Colors.white),
+                    ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xff422669), // Button color
+                      backgroundColor: Color(0xff422669),
                       padding:
                           EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                     ),
@@ -81,13 +107,14 @@ class SlotBookedPage extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      // Handle slot cancellation
                       _cancelSlot(context);
                     },
-                    child: Text('Cancel Slot',
-                    style: TextStyle(color: Colors.white),),
+                    child: Text(
+                      'Cancel Slot',
+                      style: TextStyle(color: Colors.white),
+                    ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red, // Button color
+                      backgroundColor: Colors.red,
                       padding:
                           EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                     ),
@@ -128,12 +155,19 @@ class SlotBookedPage extends StatelessWidget {
   }
 
   void _cancelSlot(BuildContext context) {
-    // Implement your slot cancellation logic here
-
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Slot booking cancelled')),
     );
 
     Navigator.of(context).pushNamed('/homepage');
+  }
+
+  String generateBookingInfo() {
+    return '''
+    Booking Id: $bookingId
+    Car Info: $carInfo
+    Address: $address
+    Slot Code: $slotCode
+    ''';
   }
 }

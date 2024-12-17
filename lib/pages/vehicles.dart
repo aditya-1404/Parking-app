@@ -6,8 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 class VehiclesPage extends StatefulWidget {
   @override
   _VehiclesPageState createState() => _VehiclesPageState();
-
-  then(Null Function(dynamic _) param0) {}
 }
 
 class _VehiclesPageState extends State<VehiclesPage> {
@@ -56,7 +54,7 @@ class _VehiclesPageState extends State<VehiclesPage> {
       showError('Failed to connect to the server');
     }
   }
-  
+
   void showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
@@ -69,9 +67,10 @@ class _VehiclesPageState extends State<VehiclesPage> {
       appBar: AppBar(
         title: const Text('My Vehicles'),
         backgroundColor: Color(0xff422669),
+        centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(8.0),
         child: vehicles.isEmpty
             ? Center(
                 child: Text(
@@ -84,19 +83,60 @@ class _VehiclesPageState extends State<VehiclesPage> {
                 itemBuilder: (context, index) {
                   var vehicle = vehicles[index];
                   return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: ListTile(
-                      title: Text(
-                        'Vehicle number: ${vehicle['number']}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(
-                        'Model: ${vehicle['model']}\nType: ${vehicle['type']}',
-                      ),
-                      trailing: const Icon(Icons.edit),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                    ),
+                    elevation: 5,
+                    margin: EdgeInsets.symmetric(vertical: 8),
+                    child: InkWell(
                       onTap: () {
                         // Implement the edit functionality if needed
                       },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          gradient: LinearGradient(
+                            colors: [Color(0xff422669), Color(0xff6A359C)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                        child: ListTile(
+                          contentPadding: EdgeInsets.symmetric(
+                              vertical: 12, horizontal: 16),
+                          leading: CircleAvatar(
+                            backgroundColor: Colors.white,
+                            radius: 24,
+                            child: Icon(
+                              Icons.directions_car,
+                              color: Color(0xff422669),
+                              size: 28,
+                            ),
+                          ),
+                          title: Text(
+                            'Vehicle number: ${vehicle['number']}',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              'Model: ${vehicle['model']}\nType: ${vehicle['type']}',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                          trailing: Icon(
+                            Icons.edit,
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ),
                     ),
                   );
                 },

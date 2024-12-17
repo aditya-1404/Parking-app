@@ -157,18 +157,18 @@ class _HomePageState extends State<HomePage> {
                 );
               },
             ),
-            // ListTile(
-            //   leading: Icon(Icons.book),
-            //   title: Text('My Bookings'),
-            //   onTap: () {
-            //     Navigator.push(
-            //       context,
-            //       MaterialPageRoute(
-            //         builder: (context) => BookingsPage(),
-            //       ),
-            //     );
-            //   },
-            // ),
+            ListTile(
+              leading: Icon(Icons.book),
+              title: Text('My Bookings'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => BookingsPage(),
+                  ),
+                );
+              },
+            ),
             ListTile(
               leading: Icon(Icons.book),
               title: Text('Real-time monitoring'),

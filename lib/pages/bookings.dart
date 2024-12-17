@@ -1,104 +1,103 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'global_booking.dart'; // Import global bookings
+import 'slotbookedpage.dart'; // Import SlotBookedPage
 
-class BookingsPage extends StatefulWidget {
-  @override
-  _BookingsPageState createState() => _BookingsPageState();
-}
-
-class _BookingsPageState extends State<BookingsPage> {
-  List<Map<String, dynamic>> bookings = []; // List to store booking data
-
-  @override
-  void initState() {
-    super.initState();
-    fetchBookings();
-  }
-
-  Future<String> _getUserId() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('userId') ?? '';
-  }
-
-  Future<void> fetchBookings() async {
-    final userId = await _getUserId();
-    final url = Uri.parse('https://spmps.onrender.com/getbookings');
-    try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'userId': userId}),
-      );
-      print(response.body);
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        if (responseData['status'] == 200) {
-          setState(() {
-            bookings = (responseData['data'] as List).map((booking) {
-              return {
-                'id': booking['booking_id'] as String,
-                'carInfo': booking['car_info'] as String,
-                'location': booking['location'] as String,
-                'slot': booking['slot'] as String,
-                'startTime': booking['start_time'] as String,
-                'endTime': booking['end_time'] as String,
-              };
-            }).toList();
-          });
-        } else {
-          showError('Failed to retrieve bookings');
-        }
-      } else {
-        showError('Error ${response.statusCode}');
-      }
-    } catch (e) {
-      showError('Failed to connect to the server');
-    }
-  }
-
-  void showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
-
+class BookingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Bookings'),
+        title: Text('My Bookings'),
         backgroundColor: Color(0xff422669),
+        centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: bookings.isEmpty
-            ? Center(
-                child: Text(
-                  'No bookings found.',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
+      body: globalBookings.isEmpty
+          ? Center(
+              child: Text(
+                'No bookings available',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[600],
                 ),
-              )
-            : ListView.builder(
-                itemCount: bookings.length,
+              ),
+            )
+          : Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ListView.builder(
+                itemCount: globalBookings.length,
                 itemBuilder: (context, index) {
-                  var booking = bookings[index];
+                  final booking = globalBookings[index];
                   return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: ListTile(
-                      title: Text(
-                        'Booking ID: ${booking['id']}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(
-                        'Car Info: ${booking['carInfo']}\nLocation: ${booking['location']}\nSlot: ${booking['slot']}\nStart: ${booking['startTime']}\nEnd: ${booking['endTime']}',
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                    ),
+                    elevation: 5,
+                    margin: EdgeInsets.symmetric(vertical: 8),
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SlotBookedPage(
+                              bookingId: booking.bookingId,
+                              carInfo: booking.carInfo,
+                              address: booking.address,
+                              slotCode: booking.slotCode,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          gradient: LinearGradient(
+                            colors: [Color(0xff422669), Color(0xff6A359C)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                        child: ListTile(
+                          contentPadding: EdgeInsets.symmetric(
+                              vertical: 12, horizontal: 16),
+                          leading: CircleAvatar(
+                            backgroundColor: Colors.white,
+                            radius: 24,
+                            child: Icon(
+                              Icons.book_online,
+                              color: Color(0xff422669),
+                              size: 28,
+                            ),
+                          ),
+                          title: Text(
+                            'Booking ID: ${booking.bookingId}',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              'Address: ${booking.address}\nSlot: ${booking.slotCode}',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                          trailing: Icon(
+                            Icons.arrow_forward_ios,
+                            color: Colors.white70,
+                          ),
+                        ),
                       ),
                     ),
                   );
                 },
               ),
-      ),
+            ),
     );
   }
 }
