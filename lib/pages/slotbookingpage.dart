@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:parking_app/models/parking_spot.dart';
 import 'package:parking_app/pages/bookingreviewpage.dart';
 
+
 class SlotBookingPage extends StatefulWidget {
   final ParkingSpot spot;
 
@@ -43,7 +44,7 @@ class _SlotBookingPageState extends State<SlotBookingPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Image.network(
-                'https://maps.googleapis.com/maps/api/staticmap?center=${widget.spot.latitude},${widget.spot.longitude}&zoom=15&size=600x300&maptype=roadmap&markers=color:red%7C${widget.spot.latitude},${widget.spot.longitude}&key=AIzaSyAMtI0X-3jyLGu0qO3UOb4UmymnZ50yJ68',
+                'https://maps.googleapis.com/maps/api/staticmap?center=${widget.spot.latitude},${widget.spot.longitude}&zoom=18&size=600x300&maptype=roadmap&markers=color:red%7C${widget.spot.latitude},${widget.spot.longitude}&key=AIzaSyCi3svuYUNITa7NvsxzrohVx_v0QYyGhkY',
                 fit: BoxFit.cover,
                 height: 150.0,
                 width: double.infinity,
@@ -68,7 +69,9 @@ class _SlotBookingPageState extends State<SlotBookingPage> {
                 children: [
                   ElevatedButton(
                     onPressed: _selectToday,
-                    child: Text('Today'),
+                    child: Text('Today',
+                    style: TextStyle(color: Colors.white),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _selectedDate?.day == DateTime.now().day
                           ? Color.fromARGB(255, 3, 9, 70)
@@ -78,7 +81,9 @@ class _SlotBookingPageState extends State<SlotBookingPage> {
                   SizedBox(width: 8),
                   ElevatedButton(
                     onPressed: _selectTomorrow,
-                    child: Text('Tomorrow'),
+                    child: Text('Tomorrow',
+                    style: TextStyle(color: Colors.white),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _selectedDate?.day ==
                               DateTime.now().add(Duration(days: 1)).day

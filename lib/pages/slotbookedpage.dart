@@ -68,7 +68,8 @@ class SlotBookedPage extends StatelessWidget {
                     onPressed: () {
                       Navigator.of(context).pushNamed('/homepage');
                     },
-                    child: Text('Go to Home page'),
+                    child: Text('Go to Home page',
+                    style: TextStyle(color: Colors.white),),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xff422669), // Button color
                       padding:
@@ -83,7 +84,8 @@ class SlotBookedPage extends StatelessWidget {
                       // Handle slot cancellation
                       _cancelSlot(context);
                     },
-                    child: Text('Cancel Slot'),
+                    child: Text('Cancel Slot',
+                    style: TextStyle(color: Colors.white),),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red, // Button color
                       padding:

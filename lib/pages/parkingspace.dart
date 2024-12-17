@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:geocoding/geocoding.dart';
 import 'package:parking_app/models/parking_spot.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:parking_app/pages/slotbookingpage.dart';
 
 
 class ParkingSpacePage extends StatefulWidget {
@@ -219,12 +220,12 @@ class _ParkingSpacePageState extends State<ParkingSpacePage> {
                                 fontWeight: FontWeight.bold),
                           ),
                           onTap: () {
-                            // Navigator.push(
-                            //   context,
-                            //   MaterialPageRoute(
-                            //     builder: (context) => SlotBookingPage(spot: spot),
-                            //   ),
-                            // );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => SlotBookingPage(spot: spot),
+                              ),
+                            );
                           },
                         ),
                       ],
