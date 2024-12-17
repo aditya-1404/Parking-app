@@ -9,7 +9,6 @@ import 'package:parking_app/pages/vehicles.dart';
 import 'package:parking_app/pages/bookings.dart';
 import 'videofeedpage.dart';
 
-
 Future<String> _getUserId() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   return prefs.getString('userId') ?? '';
@@ -23,11 +22,7 @@ Future<String> _getUserEmail() async {
 Future<void> _logout(BuildContext context) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   await prefs.clear(); // Clears all shared preferences data
-  // final userIdd = await _getUserId();
-  // print(userIdd);
-  // Navigate to Sign In page after logout
-  Navigator.pushReplacementNamed(
-      context, '/signin'); // Adjust route name to match your app's routing
+  Navigator.pushReplacementNamed(context, '/signin');
 }
 
 class HomePage extends StatefulWidget {
@@ -40,8 +35,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Map<String, dynamic>> vehicles = []; // Change type to `dynamic`
+  List<Map<String, dynamic>> vehicles = [];
   String userEmail = '';
+
   @override
   void initState() {
     super.initState();
@@ -50,9 +46,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> fetchUserEmail() async {
-    String email = await _getUserEmail(); // Get email from SharedPreferences
+    String email = await _getUserEmail();
     setState(() {
-      userEmail = email; // Set the email in the state
+      userEmail = email;
     });
   }
 
@@ -65,7 +61,6 @@ class _HomePageState extends State<HomePage> {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'userId': userId}),
       );
-      print(response.body);
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         if (responseData['status'] == 200) {
@@ -105,7 +100,7 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.white,
         leading: Builder(
           builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
+            icon: const Icon(Icons.menu, color: Color(0xff422669)),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
@@ -126,87 +121,41 @@ class _HomePageState extends State<HomePage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const CircleAvatar(
-                    radius: 20,
-                    backgroundImage: AssetImage(
-                        'assets/images/5927577__1_-removebg-preview.png'),
+                    radius: 40,
+                    backgroundImage: AssetImage('assets/images/5927577__1_-removebg-preview.png'),
                     backgroundColor: Colors.white,
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    userEmail, // Display the user email
+                    userEmail,
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
               ),
             ),
-            ListTile(
-              leading: Icon(Icons.home),
-              title: Text('Home'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => HomePage(
-                      activeBookings: [],
-                    ),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.book),
-              title: Text('My Bookings'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => BookingsPage(),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.book),
-              title: Text('Real-time monitoring'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => VideoFeedPage(),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.directions_car),
-              title: Text('My Vehicles'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => VehiclesPage(),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.settings),
-              title: Text('Settings'),
-            ),
-            ListTile(
-              leading: Icon(Icons.logout),
-              title: Text('Log Out'),
-              onTap: () => _logout(context),
-            ),
+            _buildDrawerItem(Icons.home, 'Home', () {
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage(activeBookings: [])));
+            }),
+            _buildDrawerItem(Icons.book, 'My Bookings', () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => BookingsPage()));
+            }),
+            _buildDrawerItem(Icons.camera_alt, 'Real-time Monitoring', () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => VideoFeedPage()));
+            }),
+            _buildDrawerItem(Icons.directions_car, 'My Vehicles', () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => VehiclesPage()));
+            }),
+            _buildDrawerItem(Icons.settings, 'Settings', () {}),
+            _buildDrawerItem(Icons.logout, 'Log Out', () => _logout(context)),
           ],
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(40.0),
+        padding: const EdgeInsets.all(24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -215,109 +164,16 @@ class _HomePageState extends State<HomePage> {
               height: 300,
               width: 300,
             ),
-
             const SizedBox(height: 40),
-            // Row(
-            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //   children: [
-            //     const Text(
-            //       'Your saved vehicles',
-            //       style: TextStyle(
-            //         fontSize: 18,
-            //       ),
-            //     ),
-            //     Text(
-            //       '$vehicleCount',
-            //       style: const TextStyle(
-            //         fontSize: 18,
-            //       ),
-            //     ),
-            //   ],
-            // ),
-            // const SizedBox(height: 8),
-            // Expanded(
-            //   child: vehicleCount == 0
-            //       ? Center(
-            //           child: Text(
-            //             'Nothing to show',
-            //             style: TextStyle(
-            //               color: Colors.grey,
-            //               fontSize: 16,
-            //             ),
-            //           ),
-            //         )
-            //       : ListView.builder(
-            //           itemCount: vehicleCount,
-            //           itemBuilder: (context, index) {
-            //             var vehicle = vehicles[index];
-            //             return Card(
-            //               margin: const EdgeInsets.symmetric(vertical: 8.0),
-            //               child: ListTile(
-            //                 title: Text(
-            //                   'Vehicle number : ${vehicle['number']}',
-            //                   style: const TextStyle(),
-            //                 ),
-            //                 subtitle: Text(
-            //                   'Model: ${vehicle['model']}\nType: ${vehicle['type']}',
-            //                 ),
-            //                 trailing: const Icon(Icons.edit),
-            //                 onTap: () {
-            //                   // Navigate to the vehicle edit page
-            //                 },
-            //               ),
-            //             );
-            //           },
-            //         ),
-            // ),
-            // const SizedBox(height: 20),
-            // const Text(
-            //   'Your active bookings',
-            //   style: TextStyle(
-            //     fontSize: 18,
-            //   ),
-            // ),
-            // const SizedBox(height: 8),
-            // Expanded(
-            //   child: activeBookingCount == 0
-            //       ? Center(
-            //           child: Text(
-            //             'Nothing to show..',
-            //             style: TextStyle(
-            //               color: Colors.grey,
-            //               fontSize: 16,
-            //             ),
-            //           ),
-            //         )
-            //       : ListView.builder(
-            //           itemCount: activeBookingCount,
-            //           itemBuilder: (context, index) {
-            //             var booking = widget.activeBookings[index];
-            //             return Card(
-            //               margin: const EdgeInsets.symmetric(vertical: 8.0),
-            //               child: ListTile(
-            //                 title: Text(
-            //                   'Booking ID: ${booking['id']}',
-            //                   style: const TextStyle(),
-            //                 ),
-            //                 subtitle: Text(
-            //                   'Car Info: ${booking['carInfo']}\nLocation: ${booking['location']}\nSlot: ${booking['slot']}\nStart: ${booking['startTime']}\nEnd: ${booking['endTime']}',
-            //                 ),
-            //               ),
-            //             );
-            //           },
-            //         ),
-            // ),
-            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => registervehicle.RegisterVehiclePage(
-                      vehicles: vehicles
-                          .map((vehicle) => vehicle.map(
-                              (key, value) => MapEntry(key, value.toString())))
-                          .toList(),
+                      vehicles: vehicles.map((vehicle) {
+                        return vehicle.map((key, value) => MapEntry(key, value.toString()));
+                      }).toList(),
                     ),
                   ),
                 );
@@ -326,6 +182,8 @@ class _HomePageState extends State<HomePage> {
                 minimumSize: Size(double.infinity, 50),
                 foregroundColor: Colors.white,
                 backgroundColor: Color(0xff422669),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                elevation: 5,
               ),
               child: Text('Register your vehicle'),
             ),
@@ -343,12 +201,22 @@ class _HomePageState extends State<HomePage> {
                 minimumSize: Size(double.infinity, 50),
                 foregroundColor: Colors.white,
                 backgroundColor: Color(0xff422669),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                elevation: 5,
               ),
               child: Text('Search parking space'),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  ListTile _buildDrawerItem(IconData icon, String title, VoidCallback onTap) {
+    return ListTile(
+      leading: Icon(icon, color: Color(0xff422669)),
+      title: Text(title, style: TextStyle(color: Color(0xff422669))),
+      onTap: onTap,
     );
   }
 }

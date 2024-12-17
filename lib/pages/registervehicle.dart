@@ -36,12 +36,11 @@ class _RegisterVehiclePageState extends State<RegisterVehiclePage> {
   }
 
   // Function to send POST request to the API
-  Future<void> _registerVehicle(String plateNumber, String name, String type, String userId) async {
+  Future<void> _registerVehicle(
+      String plateNumber, String name, String type, String userId) async {
     final url = Uri.parse('https://spmps.onrender.com/addvehicle');
 
     try {
-      // Send the post request
-      print(userId);
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
@@ -49,15 +48,13 @@ class _RegisterVehiclePageState extends State<RegisterVehiclePage> {
           'plateNumber': plateNumber,
           'vehicleName': name,
           'vehicleType': type,
-          'userId': userId, // Include userId in the request body
+          'userId': userId,
         }),
       );
-      print(response);
+
       if (response.statusCode == 200) {
-        // Handle success (e.g., navigate to success page)
         print('Vehicle registered successfully!');
       } else {
-        // Handle failure (show an error message)
         print('Failed to register vehicle. Status code: ${response.statusCode}');
       }
     } catch (e) {
@@ -68,98 +65,168 @@ class _RegisterVehiclePageState extends State<RegisterVehiclePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // AppBar with Back Button
       appBar: AppBar(
         backgroundColor: const Color(0xff422669),
-        title: const Text('Register your vehicle'),
-        foregroundColor: Colors.white,
+        elevation: 0, // Flat look
+        title: const Text(
+          'Register Vehicle',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pop(context); // Navigate back
+          },
+        ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Vehicle Number'),
-                onSaved: (value) => vehicleNumber = value ?? '',
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter vehicle number';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Vehicle Name'),
-                onSaved: (value) => vehicleName = value ?? '',
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter vehicle name';
-                  }
-                  return null;
-                },
-              ),
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(labelText: 'Vehicle Type'),
-                value: vehicleType,
-                items: ['SUV', 'SEDAN', 'HATCHBACK', 'OTHERS']
-                    .map((type) => DropdownMenuItem<String>(
-                          value: type,
-                          child: Text(type),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    vehicleType = value ?? 'SUV';
-                  });
-                },
-                onSaved: (value) => vehicleType = value ?? 'SUV',
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please select a vehicle type';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState!.save();
+      body: Container(
+        color: const Color(0xff422669), // Full purple background
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 20),
 
-                    // Send the POST request to the API with the userId
-                    _registerVehicle(vehicleNumber, vehicleName, vehicleType, userId);
-
-                    // Create a vehicle map
-                    Map<String, String> newVehicle = {
-                      'number': vehicleNumber,
-                      'name': vehicleName,
-                      'type': vehicleType,
-                    };
-
-                    // Add the new vehicle to the list
-                    List<Map<String, String>> updatedVehicles =
-                        List.from(widget.vehicles)..add(newVehicle);
-
-                    // Navigate to the SuccessfulPage
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SuccessfulPage(
-                          vehicles: updatedVehicles,
-                        ),
-                      ),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  foregroundColor: Colors.white,
-                  backgroundColor: const Color(0xff422669),
+                // Vehicle Number Input
+                TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 'Vehicle Number',
+                    labelStyle: const TextStyle(color: Colors.white70),
+                    prefixIcon: const Icon(Icons.directions_car, color: Colors.white70),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.white70),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.white),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  style: const TextStyle(color: Colors.white),
+                  onSaved: (value) => vehicleNumber = value ?? '',
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter vehicle number';
+                    }
+                    return null;
+                  },
                 ),
-                child: const Text('Register'),
-              ),
-            ],
+
+                const SizedBox(height: 20),
+
+                // Vehicle Name Input
+                TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 'Vehicle Name',
+                    labelStyle: const TextStyle(color: Colors.white70),
+                    prefixIcon: const Icon(Icons.drive_eta, color: Colors.white70),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.white70),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.white),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  style: const TextStyle(color: Colors.white),
+                  onSaved: (value) => vehicleName = value ?? '',
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter vehicle name';
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 20),
+
+                // Vehicle Type Dropdown
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: 'Vehicle Type',
+                    labelStyle: const TextStyle(color: Colors.white70),
+                    prefixIcon: const Icon(Icons.local_taxi, color: Colors.white70),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.white70),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.white),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  dropdownColor: const Color(0xff422669), // Dropdown background color
+                  value: vehicleType,
+                  style: const TextStyle(color: Colors.white),
+                  items: ['SUV', 'SEDAN', 'HATCHBACK', 'OTHERS']
+                      .map((type) => DropdownMenuItem<String>(
+                            value: type,
+                            child: Text(type, style: const TextStyle(color: Colors.white)),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      vehicleType = value ?? 'SUV';
+                    });
+                  },
+                ),
+
+                const SizedBox(height: 40),
+
+                // Register Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        _formKey.currentState!.save();
+
+                        // Send the POST request
+                        _registerVehicle(vehicleNumber, vehicleName, vehicleType, userId);
+
+                        // Add vehicle and navigate
+                        Map<String, String> newVehicle = {
+                          'number': vehicleNumber,
+                          'name': vehicleName,
+                          'type': vehicleType,
+                        };
+
+                        List<Map<String, String>> updatedVehicles =
+                            List.from(widget.vehicles)..add(newVehicle);
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SuccessfulPage(vehicles: updatedVehicles),
+                          ),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white, // Button color
+                      foregroundColor: const Color(0xff422669), // Text color
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      'Register',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
