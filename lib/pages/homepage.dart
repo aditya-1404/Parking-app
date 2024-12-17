@@ -7,6 +7,8 @@ import 'package:parking_app/pages/parkingspace.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:parking_app/pages/vehicles.dart';
 import 'package:parking_app/pages/bookings.dart';
+import 'videofeedpage.dart';
+
 
 Future<String> _getUserId() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -163,6 +165,18 @@ class _HomePageState extends State<HomePage> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => BookingsPage(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.book),
+              title: Text('Real-time monitoring'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => VideoFeedPage(),
                   ),
                 );
               },

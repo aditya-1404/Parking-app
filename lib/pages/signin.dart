@@ -2,121 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
-import 'package:permission_handler/permission_handler.dart';
+import 'socket_service.dart'; // Import the SocketService
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
-Future<void> requestExactAlarmPermission() async {
-  if (await Permission.scheduleExactAlarm.request().isGranted) {
-    // Permission granted, you can now schedule exact alarms
-  } else {
-    // Permission denied
-  }
-}
-
-void saveUserId(String userId) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.setString('userId', userId);
-
-  initializeService();
-}
-
-Future<void> saveUserEmail(String email) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.setString('userEmail', email);
-}
-
-Future<String> _getUserId() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  return prefs.getString('userId') ?? '';
-}
-
-Future<void> initializeService() async {
-  final service = FlutterBackgroundService();
-
-  await service.configure(
-    androidConfiguration: AndroidConfiguration(
-      onStart: onStart,
-      autoStart: true,
-      isForegroundMode: true,
-    ),
-    iosConfiguration: IosConfiguration(
-      autoStart: true,
-      onForeground: onStart,
-      onBackground: onIosBackground,
-    ),
-  );
-  service.startService();
-}
-
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin();
-
-@pragma('vm:entry-point')
-void onStart(ServiceInstance service) async {
-  String userId = await _getUserId();
-
-  const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('@mipmap/ic_launcher');
-  final InitializationSettings initializationSettings =
-      InitializationSettings(android: initializationSettingsAndroid);
-  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-
-  IO.Socket socket = IO.io('https://spmps.onrender.com', <String, dynamic>{
-    'transports': ['websocket'],
-    'query': {'userId': userId},
-  });
-
-  socket.onConnect((_) {
-    service.invoke('update', {'status': 'Connected to Socket.IO server'});
-    print('Connected to Socket.IO server');
-  });
-
-  socket.on('notification', (data) async {
-    var notificationData = jsonDecode(data);
-    String title = notificationData['title'];
-    String body = notificationData['body'];
-
-    print('New Notification: $data');
-    service.invoke('notification', {'data': data});
-
-    await flutterLocalNotificationsPlugin.show(
-      0,
-      title,
-      body,
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-          'channel_id',
-          'Channel Name',
-          importance: Importance.max,
-          priority: Priority.high,
-          showWhen: true,
-          styleInformation: BigTextStyleInformation(
-            body,
-            contentTitle: title,
-          ),
-        ),
-      ),
-    );
-
-  });
-
-  socket.onDisconnect((_) {
-    service.invoke('update', {'status': 'Disconnected from server'});
-    print('Disconnected from the server');
-  });
-
-  service.on('stopService').listen((event) {
-    service.stopSelf();
-  });
-}
-
-bool onIosBackground(ServiceInstance service) {
-  WidgetsFlutterBinding.ensureInitialized();
-  print('iOS background fetch executed');
-  return true;
-}
 
 class SignIn extends StatefulWidget {
   @override
@@ -135,9 +22,9 @@ class _SignInState extends State<SignIn> {
 
   Future<void> _checkUserLogin() async {
     String userId = await _getUserId();
-    print(userId);
     if (userId.isNotEmpty) {
-      initializeService(); // Directly start the service if userId exists
+      // Initialize SocketService if user is logged in
+      await SocketService().initializeSocket(userId);
       Navigator.of(context).pushReplacementNamed('/homepage');
     }
   }
@@ -149,8 +36,15 @@ class _SignInState extends State<SignIn> {
     super.dispose();
   }
 
+  Future<String> _getUserId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('userId') ?? '';
+  }
+
   Future<void> signIn(BuildContext context) async {
-    print(emailController.text.trim());
+    String email = emailController.text.trim();
+    String password = passwordController.text.trim();
+
     try {
       final response = await http.post(
         Uri.parse('https://spmps.onrender.com/login'),
@@ -158,33 +52,24 @@ class _SignInState extends State<SignIn> {
           'Content-Type': 'application/json',
         },
         body: jsonEncode(<String, String>{
-          'username': emailController.text.trim(),
-          'password': passwordController.text.trim(),
+          'username': email,
+          'password': password,
         }),
       );
 
       final jsonResponse = jsonDecode(response.body);
-      print(jsonResponse);
       if (jsonResponse['status'] == 200) {
-        String userId = emailController.text.trim();
-        saveUserId(userId);
-        //changed here for email stroringgg
-        String email = emailController.text.trim();
+        String userId = email;
+        await saveUserId(userId); // Save userId to SharedPreferences
         await saveUserEmail(email);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Sign in successful!')),
         );
-
         Navigator.of(context).pushReplacementNamed('/homepage');
       } else {
-        String message;
-        if (jsonResponse['status'] == 404) {
-          message = 'No user found for that email.';
-        } else if (response.statusCode == 401) {
-          message = 'Wrong password provided.';
-        } else {
-          message = 'An error occurred. Please try again.';
-        }
+        String message = jsonResponse['status'] == 404
+            ? 'No user found for that email.'
+            : 'Wrong password provided.';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(message)),
         );
@@ -194,6 +79,18 @@ class _SignInState extends State<SignIn> {
         SnackBar(content: Text('Failed to sign in: $e')),
       );
     }
+  }
+
+  Future<void> saveUserId(String userId) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('userId', userId);
+    // Initialize the socket service after saving the userId
+    await SocketService().initializeSocket(userId);
+  }
+
+  Future<void> saveUserEmail(String email) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('userEmail', email);
   }
 
   @override
