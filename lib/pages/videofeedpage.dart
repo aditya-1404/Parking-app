@@ -25,7 +25,7 @@ class _VideoFeedPageState extends State<VideoFeedPage> {
     if (userId != null) {
       // Initialize the socket service
       SocketService socketService = SocketService();
-      await socketService.initializeSocket(userId);
+      await socketService.initializeSocket(userId, context);  // Pass BuildContext to initializeSocket
 
       // Listen for the video feed data from SocketService
       socketService.onVideoFeedReceived = (Uint8List videoFeedData) {

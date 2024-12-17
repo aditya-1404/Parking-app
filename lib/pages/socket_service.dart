@@ -1,7 +1,11 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:parking_app/pages/videofeedpage.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'paymentpage.dart'; // Import your PaymentPage
+import 'package:parking_app/global.dart';
 
 class SocketService {
   static final SocketService _instance = SocketService._internal();
@@ -21,9 +25,9 @@ class SocketService {
   SocketService._internal();
 
   // Initialize the socket connection and notifications
-  Future<void> initializeSocket(String userId) async {
+  Future<void> initializeSocket(String userId, BuildContext context) async {
     // Initialize notifications
-    await _initializeNotifications();
+    await _initializeNotifications(context);
 
     socket = IO.io('https://spmps.onrender.com', <String, dynamic>{
       'transports': ['websocket'],
@@ -46,7 +50,7 @@ class SocketService {
         if (onVideoFeedReceived != null) {
           onVideoFeedReceived!(videoFeed); // Trigger the callback with the decoded image
         }
-      } catch (e) { 
+      } catch (e) {
         print('Error parsing video feed data: $e');
       }
     });
@@ -57,6 +61,7 @@ class SocketService {
         var notificationData = jsonDecode(data);
         String title = notificationData['title'];
         String body = notificationData['body'];
+        double amt = (notificationData['amt'] as num).toDouble();
 
         if (onNotificationReceived != null) {
           onNotificationReceived!(title, body); // Trigger the callback for notifications
@@ -80,6 +85,7 @@ class SocketService {
               ),
             ),
           ),
+          payload: jsonEncode({'title': title, 'body': body,'amt':amt}),  // Add payload
         );
       } catch (e) {
         print('Error parsing notification data: $e');
@@ -91,8 +97,8 @@ class SocketService {
     });
   }
 
-  // Initialize the Flutter Local Notifications plugin
-  Future<void> _initializeNotifications() async {
+  // Initialize the Flutter Local Notifications plugin and handle tap
+  Future<void> _initializeNotifications(BuildContext context) async {
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     final InitializationSettings initializationSettings =
@@ -100,6 +106,29 @@ class SocketService {
 
     bool? initialized = await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) async {
+        // Handle the notification response (tap)
+        String? payload = response.payload;
+        if (payload != null) {
+          var notificationData = jsonDecode(payload);
+          var amt=notificationData['amt'];
+          String title = notificationData['title'];
+          if (title == "Title") {
+            // Navigate to the PaymentPage if the notification is "Session ended"
+            print(context);
+            navigatorKey.currentState?.push(
+              MaterialPageRoute(builder: (context) => PaymentPage(amountToPay: amt,)),
+            );
+          }
+          if (title == "Session started") {
+            // Navigate to the PaymentPage if the notification is "Session ended"
+            print(context);
+            navigatorKey.currentState?.push(
+              MaterialPageRoute(builder: (context) => VideoFeedPage()),
+            );
+          }
+        }
+      },
     );
 
     if (initialized == null || !initialized) {

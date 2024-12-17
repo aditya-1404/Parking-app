@@ -6,16 +6,22 @@ class PaymentApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: PaymentPage(),
+      home: PaymentPage(amountToPay: 10.0),
     );
   }
 }
 
 class PaymentPage extends StatelessWidget {
-  final double amountToPay = 30.0; // Simulated backend amount
+  final double amountToPay; // Parameter for amount
+  final double serviceCharge = 5.0; // Fixed Service Charge
+  final double discount = 3.0; // Fixed Discount
+
+  PaymentPage({required this.amountToPay}); // Constructor
 
   @override
   Widget build(BuildContext context) {
+    final double totalAmount = amountToPay + serviceCharge - discount;
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Payment", style: TextStyle(color: Colors.black)),
@@ -62,73 +68,17 @@ class PaymentPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Amount",
-                        style: TextStyle(fontSize: 16, color: Colors.white),
-                      ),
-                      Text(
-                        "₹$amountToPay",
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-                      ),
-                    ],
-                  ),
+                  _buildSummaryRow("Amount", "₹$amountToPay"),
                   SizedBox(height: 8),
                   Divider(color: Colors.white54),
                   SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Service Charges",
-                        style: TextStyle(fontSize: 16, color: Colors.white),
-                      ),
-                      Text(
-                        "₹5.00",
-                        style: TextStyle(fontSize: 16, color: Colors.white),
-                      ),
-                    ],
-                  ),
+                  _buildSummaryRow("Service Charges", "₹$serviceCharge"),
                   SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Discount",
-                        style: TextStyle(fontSize: 16, color: Colors.white),
-                      ),
-                      Text(
-                        "- ₹3.00",
-                        style: TextStyle(fontSize: 16, color: Colors.white),
-                      ),
-                    ],
-                  ),
+                  _buildSummaryRow("Discount", "- ₹$discount"),
                   SizedBox(height: 8),
                   Divider(color: Colors.white54),
                   SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Total",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Text(
-                        "₹${amountToPay + 5 - 3}",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
+                  _buildSummaryRow("Total", "₹$totalAmount", isBold: true),
                 ],
               ),
             ),
@@ -159,13 +109,37 @@ class PaymentPage extends StatelessWidget {
                 ),
                 child: Text(
                   "Proceed to Pay",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,color: Colors.white),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSummaryRow(String label, String value, {bool isBold = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            color: Colors.white,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            color: Colors.white,
+          ),
+        ),
+      ],
     );
   }
 

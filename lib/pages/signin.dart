@@ -20,11 +20,12 @@ class _SignInState extends State<SignIn> {
     _checkUserLogin();
   }
 
+  // Check if the user is logged in and initialize SocketService
   Future<void> _checkUserLogin() async {
     String userId = await _getUserId();
     if (userId.isNotEmpty) {
       // Initialize SocketService if user is logged in
-      await SocketService().initializeSocket(userId);
+      await SocketService().initializeSocket(userId, context); // Pass context here
       Navigator.of(context).pushReplacementNamed('/homepage');
     }
   }
@@ -60,7 +61,7 @@ class _SignInState extends State<SignIn> {
       final jsonResponse = jsonDecode(response.body);
       if (jsonResponse['status'] == 200) {
         String userId = email;
-        await saveUserId(userId); // Save userId to SharedPreferences
+        await saveUserId(userId, context); // Save userId to SharedPreferences
         await saveUserEmail(email);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Sign in successful!')),
@@ -81,11 +82,12 @@ class _SignInState extends State<SignIn> {
     }
   }
 
-  Future<void> saveUserId(String userId) async {
+  // Save userId to SharedPreferences and initialize SocketService
+  Future<void> saveUserId(String userId, BuildContext context) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('userId', userId);
     // Initialize the socket service after saving the userId
-    await SocketService().initializeSocket(userId);
+    await SocketService().initializeSocket(userId, context); // Pass context here
   }
 
   Future<void> saveUserEmail(String email) async {
@@ -136,7 +138,7 @@ class _SignInState extends State<SignIn> {
               SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
-                  signIn(context);
+                  signIn(context); // Pass context here
                 },
                 child: Text('Sign In'),
                 style: ElevatedButton.styleFrom(
